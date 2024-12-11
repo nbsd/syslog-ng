@@ -439,8 +439,7 @@ void cmac(unsigned char *key, const void *input, gsize length, unsigned char *ou
 
   EVP_MAC_init(ctx, key, KEY_LENGTH, params);
   EVP_MAC_update(ctx, input, length);
-  size_t out_len;
-  EVP_MAC_final(ctx, out, &out_len, out_capacity);
+  EVP_MAC_final(ctx, out, outlen, out_capacity);
 
   EVP_MAC_CTX_free(ctx);
   EVP_MAC_free(mac);
@@ -474,9 +473,13 @@ void evolveKey(unsigned char *key)
 }
 
 /*
- * AES-CMAC based pseudo-random function (with variable input length and output length)
+ * AES-CMAC based pseudo-random function (with variable input length and output
+length)
  *
- * 1. Parameter: Pointer to key (input)
+ * https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-56Cr2.pdf
+ * https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-108r1-upd1.pdf
+ *
+* 1. Parameter: Pointer to key (input)
  * 2. Parameter: Pointer to input (input)
  * 3. Parameter: Length of input (input)
  * 4. Parameter: Pointer to output (output)
@@ -485,10 +488,58 @@ void evolveKey(unsigned char *key)
  * Note: For security, outputLength must be less than 255 * AES_BLOCKSIZE.
  *
  */
+
+#define newPRF
 void PRF(unsigned char *key, unsigned char *originalInput, guint64 inputLength, unsigned char *output,
          guint64 outputLength)
 {
+#ifdef newPRF
+  //First, extraction
+  guchar ktmp[KEY_LENGTH];
+  //Initialize to all zero, in case CMAC_LENGTH < KEY_LENGTH
+  bzero(ktmp, KEY_LENGTH);
+  gsize outlen = -1;
 
+  //Asume KEY_LENGTH>=CMAC_LENGTH
+  cmac(key, originalInput, inputLength, ktmp, &outlen, CMAC_LENGTH);
+  
+  //Then, expansion
+  gsize n = outputLength / CMAC_LENGTH;
+
+  gchar Label[] = "KeyExpansion";
+  gchar Context[] = "none";
+
+  // i || Label || 00 || Context || outputLength;
+  gsize myInputLength = sizeof(gsize) + strlen(Label) + 1 + strlen(Context) + sizeof(outputLength);
+  guchar input[myInputLength];
+
+  for (gsize i = 0 ; i < n ; i++) {
+    // input = i || Label || 00 || Context || outputLength;
+    memcpy (input, &i, sizeof(i));
+    memcpy(&input[sizeof(i)], Label, strlen(Label));
+    input[sizeof(i)+strlen(Label)]=0;
+    memcpy(&input[sizeof(i)+strlen(Label)+1], Context, strlen(Context));
+    memcpy(&input[sizeof(i)+strlen(Label)+1+strlen(Context)], &outputLength, sizeof(outputLength));
+    
+    cmac(ktmp, input, myInputLength, &output[i*CMAC_LENGTH], &outlen, CMAC_LENGTH);
+  }
+  
+  if (outputLength % CMAC_LENGTH != 0) {
+    guchar buf[CMAC_LENGTH];
+
+    memcpy (input, &n, sizeof(n));
+    memcpy(&input[sizeof(n)], Label, strlen(Label));
+    input[sizeof(n)+strlen(Label)]=0;
+    memcpy(&input[sizeof(n)+strlen(Label)+1], Context, strlen(Context));
+    memcpy(&input[sizeof(n)+strlen(Label)+1+strlen(Context)], &outputLength, sizeof(outputLength));
+
+    cmac(ktmp, input, myInputLength, buf, &outlen, CMAC_LENGTH);
+    
+    memcpy(&output[n*CMAC_LENGTH], buf, outputLength % CMAC_LENGTH);
+  }
+
+  
+  #else 
   unsigned char input[inputLength];
   memcpy(input, originalInput, inputLength);
 
@@ -511,6 +562,7 @@ void PRF(unsigned char *key, unsigned char *originalInput, guint64 inputLength, 
     }
 
   memcpy(output, buf, outputLength);
+  #endif
 }
 
 
@@ -532,20 +584,32 @@ int generateMasterKey(guchar *masterkey)
 /*
  * Generate a host key based on a previously created master key
  *
- * 1. Parameter: master key
- * 2. Parameter: Host MAC address
- * 3. Parameter: Host S/N
+ * 1. Parameter: master key (input)
+ * 2. Parameter: Host MAC address (input)
+ * 3. Parameter: Host S/N (input)
+ * 4. Parameter: Host key (output)
  *
- * The specific unique host key k_0 is k_0 = H(master key|| MAC address || S/N)
- * and requires 48 bytes of storage. Additional 8 bytes need to be allocated to store
- * the serial number of the host key. The caller has to allocate this memory.
+ * The specific unique host key k_0 is k_0 = PRF_{master_key}(MAC address ||
+ * S/N) and requires 32 bytes of storage. The caller has to allocate this
+ * memory.
  *
  * Return:
  * 1 on success
  * 0 on error
  */
+#define newDeriveHostKey
 int deriveHostKey(guchar *masterkey, gchar *macAddr, gchar *serial, guchar *hostkey)
 {
+
+  #ifdef newDeriveHostKey
+  gchar concatString[strlen(macAddr) + strlen(serial) + 1];
+  strncpy(concatString, macAddr, strlen(macAddr));
+  strncat(concatString, serial, strlen(serial));
+
+  PRF(masterkey, (guchar*) concatString, strlen(concatString), hostkey, KEY_LENGTH);
+
+  return 1;
+  #else
   EVP_MD_CTX *ctx;
 
   if((ctx = EVP_MD_CTX_create()) == NULL)
@@ -578,6 +642,7 @@ int deriveHostKey(guchar *masterkey, gchar *macAddr, gchar *serial, guchar *host
   EVP_MD_CTX_destroy(ctx);
 
   return 1;
+  #endif
 }
 
 /*
