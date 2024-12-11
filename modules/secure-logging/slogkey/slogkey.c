@@ -51,6 +51,7 @@ static GOptionEntry entries[] =
 
 int main(int argc, char **argv)
 {
+
   GError *error = NULL;
   GOptionContext *context = g_option_context_new("- secure logging key management\n\n  " \
                                                  "Master key generation:\tslogkey -m MASTERKEY\n  " \
