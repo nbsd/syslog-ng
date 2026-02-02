@@ -47,7 +47,7 @@ static GOptionEntry entries[] =
   { "master-key", 'm', 0, G_OPTION_ARG_NONE, &master, "Generate a master key", NULL },
   { "derive-host-key", 'd', 0, G_OPTION_ARG_NONE, &host, "Derive a host key from an existing master key", NULL },
   { "counter", 'c', 0, G_OPTION_ARG_NONE, &counter, "Display current host key counter", NULL },
-  { NULL }
+  { 0 }
 };
 
 

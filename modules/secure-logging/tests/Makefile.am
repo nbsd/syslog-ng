@@ -13,11 +13,26 @@ modules_secure_logging_tests_test_secure_logging_CFLAGS	= \
 	-I${top_srcdir}/modules/secure-logging \
 	-I${top_builddir}/modules/secure-logging
 
+modules_secure_logging_tests_test_secure_logging_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/modules/secure-logging \
+	-I$(top_builddir)/modules/secure-logging \
+	-I$(top_srcdir)/modules/secure-logging/crashrecovery/cr_common \
+	-I$(top_srcdir)/modules/secure-logging/crashrecovery/cr_logger \
+	-I$(top_srcdir)/modules/secure-logging/crashrecovery/cr_verifier
+
+modules_secure_logging_tests_test_secure_logging_CFLAGS = \
+	$(AM_CFLAGS) \
+	$(TEST_CFLAGS)
+
 modules_secure_logging_tests_test_secure_logging_LDADD = \
 	$(TEST_LDADD) \
+	modules/secure-logging/crashrecovery/cr_logger/libcr_logger.la \
+	modules/secure-logging/crashrecovery/cr_verifier/libcr_verifier.la \
 	-dlpreopen ${top_builddir}/modules/secure-logging/libsecure-logging.la \
-	-dlpreopen ${top_builddir}/modules/syslogformat/libsyslogformat.la	
+	-dlpreopen ${top_builddir}/modules/syslogformat/libsyslogformat.la
 
 endif
 
 EXTRA_DIST += modules/secure-logging/tests/CMakeLists.txt
+

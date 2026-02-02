@@ -1,0 +1,117 @@
+/*
+ * Copyright (c) 2025-2026 Airbus Commercial Aircraft
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * As an additional exemption you are allowed to compile & link against the
+ * OpenSSL libraries as published by the OpenSSL project. See the file
+ * COPYING for details.
+ *
+ */
+
+/* File: cr_destination-grammar.ym */
+
+%code top {
+#include "cr_destination-parser.h"
+}
+
+%code {
+#include <glib.h>         // Essential for basic GLib types
+#include "cr_destination.h"
+#include "cfg-grammar-internal.h"
+#include "cfg-parser.h"
+#include "syslog-names.h"
+#include "messages.h"
+#include "plugin.h"
+#include <string.h>
+#include "template/templates.h"
+}
+
+%define api.prefix {cr_destination_}
+
+/* this parameter is needed in order to instruct bison to use a complete
+ * argument list for yylex/yyerror */
+
+%lex-param {CfgLexer *lexer}
+%parse-param {CfgLexer *lexer}
+%parse-param {LogDriver **instance}
+%parse-param {gpointer arg}
+
+/* INCLUDE_DECLS */
+
+%token KW_CR_DESTINATION
+%token KW_CR_FILENAMETOKEN
+%token KW_CR_KEYPATH
+%token KW_CR_DIR
+%token KW_CR_LOGROTCNT
+%token KW_CR_MODE
+
+%%
+
+start
+/*  : LL_CONTEXT_DESTINATION first_rule          { YYACCEPT; }
+ * ;
+ */
+    : LL_CONTEXT_DESTINATION KW_CR_DESTINATION
+          {
+            last_driver = *instance = cr_destination_dd_new(configuration);
+          }
+          '(' cr_destination_options ')' { YYACCEPT; }
+;
+
+cr_destination_options
+        : cr_destination_option cr_destination_options
+        |
+        ;
+
+cr_destination_option
+        : KW_CR_FILENAMETOKEN '(' string ')'
+          {
+            cr_destination_dd_set_filenametoken(last_driver, $3);
+            free($3);
+          }
+        // Handles: key-path("/path/to/key")
+        | KW_CR_KEYPATH '(' string ')'
+          {
+            // Calls the setter function defined in cr_destination.c
+            cr_destination_dd_set_keypath(last_driver, $3);
+            free($3);
+          }
+        // Handles: dir("/path/to/dir")
+        | KW_CR_DIR '(' string ')'
+          {
+            // Calls the setter function defined in cr_destination.c
+            cr_destination_dd_set_dir(last_driver, $3);
+            free($3);
+          }
+        // Handles:logrotcnt(10000)
+        | KW_CR_LOGROTCNT '(' nonnegative_integer ')'
+          {
+            // Calls the setter function defined in cr_destination.c
+            cr_destination_dd_set_logrotcnt(last_driver, $3);
+          }
+         // Handles: mode("mode")
+        | KW_CR_MODE '(' string ')'
+          {
+            // Calls the setter function defined in cr_destination.c
+            cr_destination_dd_set_mode(last_driver, $3);
+            free($3);
+          }
+       | threaded_dest_driver_general_option
+;
+
+/* INCLUDE_RULES */
+
+%%
