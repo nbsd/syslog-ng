@@ -49,5 +49,5 @@ endif
 
 EXTRA_DIST += modules/secure-logging/crashrecovery/cr_destination/CMakeLists.txt
 
-.PHONY: modules/secure-logging/crashrecovery/cr_destination/ mod-cr_destination
+# .PHONY: modules/secure-logging/crashrecovery/cr_destination/ mod-cr_destination
 

@@ -8,10 +8,10 @@ modules_secure_logging_tests_TESTS = \
 check_PROGRAMS += \
 	${modules_secure_logging_tests_TESTS}
 
-modules_secure_logging_tests_test_secure_logging_CFLAGS	= \
-	$(TEST_CFLAGS) \
-	-I${top_srcdir}/modules/secure-logging \
-	-I${top_builddir}/modules/secure-logging
+# modules_secure_logging_tests_test_secure_logging_CFLAGS	= \
+#	$(TEST_CFLAGS) \
+#	-I${top_srcdir}/modules/secure-logging \
+#	-I${top_builddir}/modules/secure-logging
 
 modules_secure_logging_tests_test_secure_logging_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
