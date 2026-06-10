@@ -25,7 +25,7 @@
 #-----------------------------------------------------------------------
 # File:   run_cmake_rebuild.sh
 # Author: Airbus Commercial Aircraft <secure-logging@airbus.com>
-# Date:   2026-06-09
+# Date:   2026-06-10
 #
 # Helper script to rebuild all from scratch inclusive installation and
 # test.
@@ -424,7 +424,9 @@ perform_complete_rebuild() {
     # -- make ---
     set -e
     JOBS=""
-    [[ ${IS_PARALLEL_BUILD} == "true" ]] && JOBS="-j$(nproc)"
+    if [[ ${IS_PARALLEL_BUILD} == "true" ]]; then
+        JOBS="-j$(nproc)"
+    fi
     cd "${BUILD_DIR}" || {
         echo "${FAIL_CD}"
         cd "${ORIGINAL_DIR}" || echo "${FAIL_CDR} ${ORIGINAL_DIR}" >&2
@@ -436,7 +438,11 @@ perform_complete_rebuild() {
     echo "File: ${CURRENT_LOG_MAKE}" >"${CURRENT_LOG_MAKE}"
 
     set +e
-    ${MY_MAKE} "${JOBS}" VERBOSE=1 2>&1 | tee -a "${CURRENT_LOG_MAKE}"
+    if [[ ${IS_PARALLEL_BUILD} == "true" ]]; then
+        ${MY_MAKE} "${JOBS}" VERBOSE=1 2>&1 | tee -a "${CURRENT_LOG_MAKE}"
+    else
+        ${MY_MAKE} VERBOSE=1 2>&1 | tee -a "${CURRENT_LOG_MAKE}"
+    fi
     # Check PIPESTATUS of the make command (index 0)
     MAKE_RET=${PIPESTATUS[0]}
     set -e # Re-enable exit-on-error
@@ -583,7 +589,6 @@ perform_test() {
     echo "${INFO} ${MY_MAKE} check"
     CURRENT_LOG_CHECK="${LOGFILE}_cmake_${C_COMPILER}_make_check.txt"
     echo "File: ${CURRENT_LOG_CHECK}" >"${CURRENT_LOG_CHECK}"
-
     set +e
     ${MY_MAKE} check ARGS="--color=always --verbose" 2>&1 | tee -a "${CURRENT_LOG_CHECK}"
     CHECK_EXIT_CODE=${PIPESTATUS[0]}
