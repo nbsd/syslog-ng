@@ -40,7 +40,7 @@ static CfgLexerKeyword cr_destination_keywords[] =
   { "dir", KW_CR_DIR, KWS_NORMAL, "Working directory crash recovery" },
   { "logrotcnt", KW_CR_LOGROTCNT, KWS_NORMAL, "Log rotation max lines" },
   { "mode", KW_CR_MODE, KWS_NORMAL, "Log modes: plain_only, enc_only, plain_enc" },
-  { NULL }
+  { 0 }
 };
 
 CfgParser cr_destination_parser =
