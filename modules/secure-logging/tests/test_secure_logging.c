@@ -58,24 +58,9 @@
 #include "slog.h"
 
 
-#ifdef __i386__
-
-//-- 2026-06-11: Approach: reduce load to fix the following:
-// https://github.com/nbsd/syslog-ng/actions/runs/27339580544/job/80772609639
-// 209/209 Test #193: test_secure_logging .....................***Timeout 1500.10 sec
-// Build @ devshell on ubuntu-latest / devshell-cmake-gcc-i386
-
-#define MAX_TEST_MESSAGES 50
-#define MIN_TEST_MESSAGES 10
-#define PERFORMANCE_COUNTER 100
-
-#else
-
 #define MAX_TEST_MESSAGES 1000
 #define MIN_TEST_MESSAGES 10
 #define PERFORMANCE_COUNTER 100000
-
-#endif
 
 // Local parse options
 static MsgFormatOptions test_parse_options;
