@@ -25,7 +25,7 @@
 #-----------------------------------------------------------------------
 # File:   run_autotools_rebuild.sh
 # Author: Airbus Commercial Aircraft <secure-logging@airbus.com>
-# Date:   2026-06-10
+# Date:   2026-06-11
 #
 # Helper script to rebuild all from scratch inclusive installation and
 # test.

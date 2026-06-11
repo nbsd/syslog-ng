@@ -25,7 +25,7 @@
 #-----------------------------------------------------------------------
 # File:   run_cmake_rebuild.sh
 # Author: Airbus Commercial Aircraft <secure-logging@airbus.com>
-# Date:   2026-06-10
+# Date:   2026-06-11
 #
 # Helper script to rebuild all from scratch inclusive installation and
 # test.
@@ -589,8 +589,9 @@ perform_test() {
     echo "${INFO} ${MY_MAKE} check"
     CURRENT_LOG_CHECK="${LOGFILE}_cmake_${C_COMPILER}_make_check.txt"
     echo "File: ${CURRENT_LOG_CHECK}" >"${CURRENT_LOG_CHECK}"
+
     set +e
-    ${MY_MAKE} check ARGS="--color=always --verbose" 2>&1 | tee -a "${CURRENT_LOG_CHECK}"
+    ${MY_MAKE} check 2>&1 | tee -a "${CURRENT_LOG_CHECK}"
     CHECK_EXIT_CODE=${PIPESTATUS[0]}
     set -e
     if [[ ${CHECK_EXIT_CODE} -ne 0 ]]; then

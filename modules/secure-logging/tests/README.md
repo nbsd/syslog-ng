@@ -16,17 +16,18 @@ The branches slog-plain-base64 and slog-crash-recovery
 do provide build scripts for Autotools and CMake in the root folder
 of the syslog-ng project: run_autotool_rebuild.sh and run_cmake_rebuild.sh.
 
-There is one configurations that might be set in the source file.
-This is related to speed optimization and the use of SSE2 or AVX2 
-for Intel x86_64 CPUs. The default is set to SSE2.
+For Crash Recovery one configuration in regard speed optimization is set in the source file
+syslog-ng/modules/secure-logging/crashrecovery/cr_verifier/cr_plain_gauss_helper.h
+
+Here it can be decided whether to use special CPU features like SSE2 or AVX2 for Intel x86_64 CPUs.
+The default is set to SSE2.
+
+Note: When AVX2 is activated, data to be processed MUST be aligned 32 bytes: __attribute__((aligned(32)));.
+
 But when syslog-ng needs to be compiled for ARM64, like for a raspberry,
 the preprocessor CPU_OTHER is set to 1 and CPU_AVX2 and CPU_SSE2 is set to 0.
+There are no optimizations for ARM CPUs currently provided.
 
-~/Software/syslog-ng/modules/secure-logging/crashrecovery/cr_verifier$ ls
-CMakeLists.txt  cr_matrix.c  cr_matrix.h  cr_pi_types.h  cr_pi_verifier.c  cr_pi_verifier.h 
-cr_plain_gauss_helper.c  cr_plain_gauss_helper.h  cr_result.h  cr_verifier.c  Makefile.am
-
-~/Software/syslog-ng/modules/secure-logging/crashrecovery/cr_verifier$ vim cr_plain_gauss_helper.h
 ```
 //-- CPU Preprocessors (One and only one must be set to 1 and the others must be set to 0)
 //   CPU_AVX2: Intel x86_64 CPU with AVX2 support (fastest, not available on all Intel CPUs)
@@ -59,7 +60,7 @@ mkdir build
 
 cd build
 
-../configure --prefix=$HOME/Software/install --enable-debug --enable-manpages --disable-java --disable-python --disable-python-modules --with-ivykis=system --with-jsonc=yes --enable-stomp=no --enable-sql=no
+../configure --prefix=$HOME/Software/install --enable-debug --enable-slog --enable-manpages --disable-java --disable-python --disable-python-modules --with-ivykis=system --with-jsonc=yes --enable-stomp=no --enable-sql=no
 
 make
 
@@ -84,6 +85,7 @@ cmake \
     -DCMAKE_CXX_COMPILER=g++ \
     -DIVYKIS_SOURCE=system \
     -DJSONC_SOURCE=system  \
+    -DENABLE_SLOG=on \
     -DENABLE_MANPAGES=on   \
     -DENABLE_PYTHON=off   \
     -DENABLE_APPMODEL=on   \
@@ -158,6 +160,13 @@ syslog-ng.conf templates:
 - syslog-ng-test-plain-base64-udp-nc.conf
 - syslog-ng-test-plain-direct-udp-nc.conf
 - slog-ng-test-udp-nc.conf
+
+In case Crash Recovery is tested, in the syslog-ng.conf file a destination with
+log rotation is used instead of the template from classic secure-logging.
+See syslog-ng.conf templates:
+- syslog-ng-test-crash-recovery.conf
+- syslog-ng-test-logrot-crash-recovery_cli20.conf
+- syslog-ng-test-logrot-crash-recovery_cli26.conf
 
 When needed for debugging purpose, the content of the test folder can be copied
 into into the users home folder, see script variables HOME_BACKUP and

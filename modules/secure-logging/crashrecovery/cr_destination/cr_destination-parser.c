@@ -43,6 +43,12 @@ static CfgLexerKeyword cr_destination_keywords[] =
   { 0 }
 };
 
+
+static void cr_destination_cleanup_wrapper(gpointer pipe)
+{
+  log_pipe_unref((LogPipe *)pipe);
+}
+
 CfgParser cr_destination_parser =
 {
 #if SYSLOG_NG_ENABLE_DEBUG
@@ -51,7 +57,13 @@ CfgParser cr_destination_parser =
   .name = "cr_destination",
   .keywords = cr_destination_keywords,
   .parse = (gint (*)(CfgLexer *, gpointer *, gpointer)) cr_destination_parse,
-  .cleanup = (void (*)(gpointer)) log_pipe_unref,
+  .cleanup = cr_destination_cleanup_wrapper,
 };
+
+//-- This has been replaced: .cleanup = (void (*)(gpointer)) log_pipe_unref,
+//   by the wrapper: .cleanup = cr_destination_cleanup_wrapper,
+//-- Reason:
+//   warning: cast between incompatible function types from ‘gboolean (*)(LogPipe *)’
+//   {aka ‘int (*)(struct _LogPipe *)’} to ‘void (*)(void *)’ [-Wcast-function-type]
 
 CFG_PARSER_IMPLEMENT_LEXER_BINDING(cr_destination_, CR_DESTINATION_, LogDriver **)

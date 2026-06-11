@@ -17,8 +17,10 @@ enum LogMode
    LOGMODE_ENCRYPTED,    //-- enc, do encrypt and provide encrypted log message Base64 encoded
 };
 ```
-In the syslog-ng.conf file the logmode is represented by one of the key words
+In the syslog-ng.conf file the logmode is set by --logmode and one of the key words
 (direct | base64 | enc) inside the template slog.
+In case it is missing, --logmode enc is automatically used silently which behaves like old
+secure-logging without plain mode.
 
 
 ## LOGMODE_PLAIN_DIRECT
@@ -109,7 +111,10 @@ To provide only encrypted log messages, the logmode is to be set to **enc**:
 
 # Configuration Console Tools
 
-The log mode must be provided to console tools slogencrypt and slogverify.
+The log mode can be provided to console tools slogencrypt and slogverify.
+In case the argument --logmode is missing, --logmode enc is used silently
+which provides the same behaviour as in old secure-logging without having
+the plain mode.
 
 ## slogencrypt
 
