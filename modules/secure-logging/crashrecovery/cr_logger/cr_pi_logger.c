@@ -267,7 +267,7 @@ gboolean cr_Init_prg(cr_PIContext *ctx, cr_PRGContext **pp_prg)
     }
 
   g_info("cr_init_prg, ctx->logFile: %p, ctx->m: %d", (void *)(ctx->logFile), ctx->m);
-  dbg_hexdump("cr_Init_prg, ctx->sessionKey", (void *)(ctx->sessionKey), KEY_SIZE);
+  //dbg_hexdump("cr_Init_prg, ctx->sessionKey", (void *)(ctx->sessionKey), KEY_SIZE);
 
   size_t fileSize = ctx->m * LOG_LEN; // m * LOG_LEN
   g_print("cr_Init_prg, fileSize: %ld, ctx->m: %d, LOG_LEN: %d\n", fileSize, ctx->m, LOG_LEN);
@@ -487,8 +487,8 @@ cr_PIContext *cr_CreatePIContext(unsigned long n,
   ctx->m = (int) temp_m;
   ctx->logFileName = szOutputEncLogPath;
 
-  dbg_hexdump("ctx->sessionKey", (void *)(ctx->sessionKey), KEY_SIZE);
-  dbg_hexdump("masterKey", (void *)(masterKey), KEY_SIZE);
+  //dbg_hexdump("ctx->sessionKey", (void *)(ctx->sessionKey), KEY_SIZE);
+  //dbg_hexdump("masterKey", (void *)(masterKey), KEY_SIZE);
 
   //-- test read key and compare
   memset(tempKey, 5, KEY_SIZE);

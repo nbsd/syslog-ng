@@ -457,4 +457,3 @@ GPtrArray *cr_pi_logger_main_read_logs_glib(const gchar *path, gint max_log_coun
   return gpa_logs;
 }
 
-
