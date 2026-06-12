@@ -249,7 +249,7 @@ gboolean deriveKey(guchar *dst, guint64 index, guint64 currentKey);
  * 5. Parameter: The resulting encrypted log entry
  * 6. Parameter: The newly updated MAC
  * 7. Parameter: The capacity of the newly updated MAC buffer
- * 8. Parameter: The log mode: How the log shall appear (direct, base64, enc)
+ * 8. Parameter: The log mode: How the log shall appear (direct|base64|enc)
 */
 
 gboolean sLogEntry(guint64 numberOfLogEntries,

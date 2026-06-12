@@ -18,25 +18,26 @@ enum LogMode
 };
 ```
 In the syslog-ng.conf file the logmode is set by --logmode and one of the key words
-(direct | base64 | enc) inside the template slog.
+(direct|base64|enc) inside the template slog.
 In case it is missing, --logmode enc is automatically used silently which behaves like old
 secure-logging without plain mode.
 
 
 ## LOGMODE_PLAIN_DIRECT
-LOGMODE_PLAIN_DIRECT (--logmode direct in syslog-ng.conf) ensures that a
-log message is not encrypted and provided as plain text.
-Additional line and checksum information is added Base64 encoded to detected manipulation.
+LOGMODE_PLAIN_DIRECT (--logmode direct in syslog-ng.conf) ensures that
+log messages are not encrypted and provided as plain text as they are.
+Additional line and checksum information is added for each message Base64 encoded to detected manipulation.
 
 ## LOGMODE_PLAIN_BASE64
-LOGMODE_PLAIN_BASE64 (--logmode base64 in syslog-ng.conf) ensures that a
-log message is not encrypted but provided encoded in Base64.
-Additional line and checksum information is added Base64 encoded to detected manipulation.
+LOGMODE_PLAIN_BASE64 (--logmode base64 in syslog-ng.conf) ensures that
+log messages are not encrypted but provided encoded in Base64.
+Additional line and checksum information is added for each message Base64 encoded to detected manipulation.
 
 ## LOGMODE_ENCRYPTED
-LOGMODE_ENCRYPTED (--logmode enc in syslog-ng.conf) is the classic way secure logging was intended.
-The log message is fully encrypted and the encrypted message is provided Base64 encoded.
-Additional line and checksum information is added Base64 encoded to detected manipulation.
+LOGMODE_ENCRYPTED (--logmode enc in syslog-ng.conf) is the classic way of secure logging before 
+the logmode was introduced.
+Log message are encrypted and the encrypted messages are provided Base64 encoded.
+Additional line and checksum information is added for each message Base64 encoded to detected manipulation.
 
 
 
@@ -140,12 +141,10 @@ Help Options:
 Application Options:
   -k, --key-file=FILE       Current host key file
   -m, --mac-file=FILE       Current MAC file
-  -l, --logmode=LOGMODE     Log mode (direct|base64|enc) whether log is expected as is plain text or only encoded in Base64 or encrypted
+  -l, --logmode=LOGMODE     Log mode (direct|base64|enc) whether log messages shall be provided as they are in plain text or only encoded in Base64 or encrypted
 ```
 
 ## slogverify
-
-Note: The logmode for verification must fit the one used for slogencrypt.
 
 ```
 ./slogverify --help
@@ -157,7 +156,7 @@ Examples:
     ./slogverify
     --key-file ./host.key
     --mac-file ./mac.dat
-    --logmode direct
+    --logmode enc
     ./messages.slog
     ./messages_verified.txt
 
@@ -166,7 +165,7 @@ Examples:
     --prev-key-file ./host0.key
     --prev-mac-file ./mac0.dat
     --mac-file ./mac1.dat
-    --logmode direct
+    --logmode enc
     ./plainlog_1.out
     ./plainlog_1.chk
 
@@ -182,6 +181,9 @@ Application Options:
   -p, --prev-key-file=FILE     Previous host key file in iterative mode
   -r, --prev-mac-file=FILE     Previous MAC file in iterative mode
 ```
+
+Note: The logmode for verification must fit the one used for slogencrypt.
+
 
 # man pages
 

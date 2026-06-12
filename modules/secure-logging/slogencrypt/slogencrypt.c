@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
     }
   else
     {
-      //-- variant --logmode <direct|base64|enc> provided
+      //-- variant --logmode (direct|base64|enc) provided
       char *str_logmode_arg = g_strndup(options[index].arg, PATH_MAX - 1); //-- limit buffer
       g_free(options[index].arg);
       options[index].arg = NULL;
