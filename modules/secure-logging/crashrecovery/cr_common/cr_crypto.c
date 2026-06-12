@@ -396,7 +396,7 @@ static int cr_exists(int element, const int arr[], size_t size)
 
 unsigned int cr_UniformRandomInt(cr_PRGContext *ctx, const unsigned int upperBound)
 {
-  unsigned long multipleOfUpperBound;
+  unsigned long long multipleOfUpperBound; //-- Fix ensure no overflow in case i386 (endless loop)
   unsigned int rand;
   unsigned char *randomBuffer;
 
@@ -415,7 +415,8 @@ unsigned int cr_UniformRandomInt(cr_PRGContext *ctx, const unsigned int upperBou
   // in the case the upper bound is a multiple of 2^32, the condition below holds anyeay, because it has to be less than 2^32,
   // so it will work with the largest possible unsigned int.
 
-  multipleOfUpperBound = (1UL << 32) - ((1UL << 32) % upperBound);
+  multipleOfUpperBound = (1ULL << 32) - ((1ULL << 32) %
+                                         upperBound); //-- Fix: unsigned long long else might result in 0 on i386 due overflow
   randomBuffer = g_malloc0(sizeof(unsigned int));
 
   for (;;)
@@ -527,8 +528,10 @@ int cr_DRN(unsigned char seed[KEY_SIZE], const int the_k, const int upperBound, 
 
   while (i < the_k)
     {
+      //-- TODO endless loop in case i386? How is ensured that i is incremented?
+
       //-- rand % upperbound so upperBound must be >= the_k else endless loop while
-      rand = cr_UniformRandomInt(ctx, upperBound);
+      rand = cr_UniformRandomInt(ctx, upperBound); //-- fixed
       // check if the random number already exists in the arra of k random numbers.
       if (!cr_exists(rand, kRandom, the_k))
         {
