@@ -358,12 +358,12 @@ int main(int argc, char *argv[])
   GString *gstr_path_outputlog = g_string_new(NULL); //-- OUTPUTLOG
 
   // Assign option arguments
-  int index = 1;
+  int optidx = 1;
 
   //-- key-file (hostkey), normal mode ---
   if (!iterative)
     {
-      if (NULL == options[index].arg)
+      if (NULL == options[optidx].arg)
         {
           msg_error(SLOG_ERROR_PREFIX,
                     evt_tag_str("Reason",
@@ -374,9 +374,9 @@ int main(int argc, char *argv[])
           goto CLEANUP_SLOGVERIFY;
         }
       {
-        char *p_temp = g_strndup(options[index].arg, PATH_MAX - 1); //-- limit buffer
-        g_free(options[index].arg);
-        options[index++].arg = NULL; //-- inc
+        char *p_temp = g_strndup(options[optidx].arg, PATH_MAX - 1); //-- limit buffer
+        g_free(options[optidx].arg);
+        options[optidx++].arg = NULL; //-- inc
         char *p_canon = g_canonicalize_filename(p_temp, NULL); //-- normalize
         g_string_assign(gstr_path_hostkey, p_canon ? p_canon : "");
         g_free(p_temp);
@@ -396,12 +396,12 @@ int main(int argc, char *argv[])
     }
   else
     {
-      index++;
+      optidx++;
     }
 
 
   //-- mac-file, both iterative and normal mode argument
-  if (NULL == options[index].arg)
+  if (NULL == options[optidx].arg)
     {
       msg_error(SLOG_ERROR_PREFIX,
                 evt_tag_str("Reason",
@@ -412,9 +412,9 @@ int main(int argc, char *argv[])
       goto CLEANUP_SLOGVERIFY;
     }
   {
-    char *p_temp = g_strndup(options[index].arg, PATH_MAX - 1); //-- limit buffer
-    g_free(options[index].arg);
-    options[index++].arg = NULL; //-- inc
+    char *p_temp = g_strndup(options[optidx].arg, PATH_MAX - 1); //-- limit buffer
+    g_free(options[optidx].arg);
+    options[optidx++].arg = NULL; //-- inc
     char *p_canon = g_canonicalize_filename(p_temp, NULL); //-- normalize
     g_string_assign(gstr_path_curMAC, p_canon ? p_canon : "");
     g_free(p_temp);
@@ -434,17 +434,17 @@ int main(int argc, char *argv[])
 
 
   //-- logmode (direct|base64|enc) ---
-  if (NULL == options[index].arg)
+  if (NULL == options[optidx].arg)
     {
       msg_info(SLOG_INFO_PREFIX, evt_tag_str("Reason", "Old configuration without logmode: Use default enc"));
       logmode = LOGMODE_ENCRYPTED;
-      index++; //-- inc
+      optidx++; //-- inc
     }
   else
     {
-      char *str_logmode_arg = g_strndup(options[index].arg, PATH_MAX - 1); //-- limit buffer
-      g_free(options[index].arg);
-      options[index++].arg = NULL; //-- inc
+      char *str_logmode_arg = g_strndup(options[optidx].arg, PATH_MAX - 1); //-- limit buffer
+      g_free(options[optidx].arg);
+      options[optidx++].arg = NULL; //-- inc
       logmode = convert_str_logmode(str_logmode_arg);
       g_free(str_logmode_arg);
       str_logmode_arg = NULL;
@@ -469,7 +469,7 @@ int main(int argc, char *argv[])
   //-- prev-key-file (prevhostkey), only iterative mode ---
   if (iterative)
     {
-      if (NULL == options[index].arg)
+      if (NULL == options[optidx].arg)
         {
           msg_error(SLOG_ERROR_PREFIX,
                     evt_tag_str("Reason",
@@ -481,9 +481,9 @@ int main(int argc, char *argv[])
           goto CLEANUP_SLOGVERIFY;
         }
       {
-        char *p_temp = g_strndup(options[index].arg, PATH_MAX - 1); //-- limit buffer
-        g_free(options[index].arg);
-        options[index++].arg = NULL; //-- inc
+        char *p_temp = g_strndup(options[optidx].arg, PATH_MAX - 1); //-- limit buffer
+        g_free(options[optidx].arg);
+        options[optidx++].arg = NULL; //-- inc
         char *p_canon = g_canonicalize_filename(p_temp, NULL); //-- normalize
         g_string_assign(gstr_path_prevhostkey, p_canon ? p_canon : "");
         g_free(p_temp);
@@ -503,14 +503,14 @@ int main(int argc, char *argv[])
     }
   else
     {
-      index++;
+      optidx++;
     }
 
 
   //-- prev-mac-file (prevMAC), only iterative mode ---
   if (iterative)
     {
-      if (NULL == options[index].arg)
+      if (NULL == options[optidx].arg)
         {
           msg_error(SLOG_ERROR_PREFIX,
                     evt_tag_str("Reason",
@@ -522,9 +522,9 @@ int main(int argc, char *argv[])
           goto CLEANUP_SLOGVERIFY;
         }
       {
-        char *p_temp = g_strndup(options[index].arg, PATH_MAX - 1); //-- limit buffer
-        g_free(options[index].arg);
-        options[index++].arg = NULL; //-- inc
+        char *p_temp = g_strndup(options[optidx].arg, PATH_MAX - 1); //-- limit buffer
+        g_free(options[optidx].arg);
+        options[optidx++].arg = NULL; //-- inc
         char *p_canon = g_canonicalize_filename(p_temp, NULL); //-- normalize
         g_string_assign(gstr_path_prevMAC, p_canon ? p_canon : "");
         g_free(p_temp);
@@ -545,10 +545,10 @@ int main(int argc, char *argv[])
 
 
   // Input and output file arguments
-  index = 1;
+  optidx = 1;
 
   //-- INPUTLOG ---
-  if (NULL == argv[index])
+  if (NULL == argv[optidx])
     {
       msg_error(SLOG_ERROR_PREFIX, evt_tag_str("Reason", "Path to INPUTLOG is missing"));
       (void) slog_usage(context, group, NULL);
@@ -557,7 +557,7 @@ int main(int argc, char *argv[])
       goto CLEANUP_SLOGVERIFY;
     }
   {
-    char *p_temp = g_strndup(argv[index++], PATH_MAX - 1); //-- limit buffer, inc
+    char *p_temp = g_strndup(argv[optidx++], PATH_MAX - 1); //-- limit buffer, inc
     char *p_canon = g_canonicalize_filename(p_temp, NULL); //-- normalize
     g_string_assign(gstr_path_inputlog, p_canon ? p_canon : "");
     g_free(p_temp);
@@ -576,7 +576,7 @@ int main(int argc, char *argv[])
   msg_info(SLOG_INFO_PREFIX, evt_tag_str("INPUTLOG", gstr_path_inputlog->str));
 
   //-- OUTPUTLOG ---
-  if (NULL == argv[index])
+  if (NULL == argv[optidx])
     {
       msg_error(SLOG_ERROR_PREFIX, evt_tag_str("Reason", "Path to OUTPUTLOG is missing"));
       (void) slog_usage(context, group, NULL);
@@ -585,7 +585,7 @@ int main(int argc, char *argv[])
       goto CLEANUP_SLOGVERIFY;
     }
   {
-    char *p_temp = g_strndup(argv[index++], PATH_MAX - 1); //-- limit buffer, inc
+    char *p_temp = g_strndup(argv[optidx++], PATH_MAX - 1); //-- limit buffer, inc
     char *p_canon = g_canonicalize_filename(p_temp, NULL); //-- normalize
     g_string_assign(gstr_path_outputlog, p_canon ? p_canon : "");
     g_free(p_temp);
@@ -605,7 +605,7 @@ int main(int argc, char *argv[])
   // Buffer size arguments if applicable
   if (argc == 4)
     {
-      bufSize = atoi(argv[index]);
+      bufSize = atoi(argv[optidx]);
       if (bufSize <= MIN_BUF_SIZE || bufSize > MAX_BUF_SIZE)
         {
           msg_error(SLOG_ERROR_PREFIX,

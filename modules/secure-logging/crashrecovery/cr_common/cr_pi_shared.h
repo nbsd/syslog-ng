@@ -70,7 +70,16 @@
 #define FNV_OFFSET_BASIS_32 2166136261U
 
 
-/* --- Static Assert Abstraction --- */
+/* --- Static Assert Abstraction: SLOGCR_STATIC_ASSERT --- */
+
+/* Example how to use SLOGCR_STATIC_ASSERT */
+
+/* Test 1: Passing assertion (should compile silently) */
+/* SLOGCR_STATIC_ASSERT(1, "This should always pass"); */
+
+/* Test 2: Failing assertion (compile-time error) */
+/* SLOGCR_STATIC_ASSERT(0, "This should fail at compile time!"); */
+
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
 /* Modern C11 approach */
 #include <assert.h>
@@ -92,15 +101,7 @@
 
 #endif
 
-/* Example how to use SLOGCR_STATIC_ASSERT */
-
-/* Test 1: Passing assertion (should compile silently) */
-/* SLOGCR_STATIC_ASSERT(1, "This should always pass"); */
-
-/* Test 2: Failing assertion (compile-time error) */
-/* SLOGCR_STATIC_ASSERT(0, "This should fail at compile time!"); */
-
-/* --- End of Macro --- */
+/* --- End of Macro SLOGCR_STATIC_ASSERT --- */
 
 
 
@@ -124,7 +125,7 @@ int cr_CreateIntegrityTag(unsigned char *key, unsigned char *XORlj, unsigned cha
 void cr_print_gstring_info(GString *gstr, const gchar *sz_title, gboolean is_showhex, gboolean is_debug);
 
 /* get and check path form full filename */
-gboolean get_path_from_file(char *path_file_name, char *path_dir, int size_path_dir);
+gboolean get_path_from_file(const char *path_file_name, char *path_dir, int size_path_dir);
 
 /* get short file name without extension */
 gchar *get_stem_manually(const gchar *filename);

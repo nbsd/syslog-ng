@@ -1470,7 +1470,6 @@ gboolean iterateBuffer(
       GString *entry = (GString *)g_ptr_array_index(input, i);
       guint64 len = entry->len;
       guint64 logEntryOnDisk;
-      gboolean is_tampered = FALSE; //-- detect tampered string, e.g. base64 manipulation
 
       if (len > (COUNTER_LENGTH + 1))
         {
@@ -1480,7 +1479,6 @@ gboolean iterateBuffer(
               logEntryOnDisk = *nextLogEntry;
             }
           // Subtract counter from log entry
-          len = len - (COUNTER_LENGTH + 1);
           if (logEntryOnDisk != *nextLogEntry) //-- not equal
             {
               //-- This branch is not the normal expected case
@@ -1550,6 +1548,7 @@ gboolean iterateBuffer(
 
           //-- logmode ---
 
+          gboolean is_tampered = FALSE; //-- detect tampered string, e.g. base64 manipulation
           if (LOGMODE_PLAIN_DIRECT == logmode)
             {
               gsize len_iv_tag = 0;

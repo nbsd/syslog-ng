@@ -112,7 +112,7 @@ void cr_print_gstring_info(GString *gstr, const gchar *sz_title, gboolean is_sho
 
 
 // return TRUE on success, else FALSE
-gboolean get_path_from_file(char *path_file_name, char *path_dir, int size_path_dir)
+gboolean get_path_from_file(const char *path_file_name, char *path_dir, int size_path_dir)
 {
   gboolean retval = FALSE;
   if ((NULL == path_file_name) || (NULL == path_dir))
@@ -183,7 +183,7 @@ gchar *get_stem_manually(const gchar *filename)
 gboolean get_now(char *szNow, gsize str_size)
 {
   memset(szNow, 0, str_size);//    char filename_buffer[64];
-  struct tm *local_time_info;
+  const struct tm *local_time_info;
   time_t raw_time;
   time(&raw_time);
   local_time_info = localtime(&raw_time);
@@ -426,7 +426,7 @@ void get_human_timestamp(char szBuffer[256])
   struct timespec current_ts;
   clock_gettime(CLOCK_REALTIME, &current_ts);
   time_t seconds = current_ts.tv_sec;
-  struct tm *local_time = localtime(&seconds);
+  const struct tm *local_time = localtime(&seconds);
   strftime(szBuffer, 256, "%Y-%m-%d %H:%M:%S", local_time);
 }
 
@@ -447,7 +447,7 @@ void get_filename_timestamp(char szBuffer[256])
   struct timespec current_ts;
   clock_gettime(CLOCK_REALTIME, &current_ts);
   time_t seconds = current_ts.tv_sec;
-  struct tm *local_time = localtime(&seconds);
+  const struct tm *local_time = localtime(&seconds);
   strftime(szBuffer, 256, "%Y-%m-%dT%H%M%S", local_time);
 }
 

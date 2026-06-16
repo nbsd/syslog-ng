@@ -595,7 +595,7 @@ cr_Result cr_verifySingleLogFile(cr_VerifierContext *ctx)
           // (void) fprintf(ctx->protocolFile, "taui.ID not found in key store, loop index %d:\n", i);
           continue; // NEXT
         }
-      cr_KeyStoreEntry *p_kse = g_hash_table_lookup(ght_KeyStore, tau_i.ID);
+      const cr_KeyStoreEntry *p_kse = g_hash_table_lookup(ght_KeyStore, tau_i.ID);
       if (NULL == p_kse)
         {
           // dbg_hexdump((unsigned char*) "tau_i.ID is in ght_KeyStore but p_kse is NULL", tau_i.ID, ID_LEN);
@@ -727,8 +727,8 @@ cr_Result cr_verifySingleLogFile(cr_VerifierContext *ctx)
 
           if (FALSE == is_equal_nullvector(tau_lj.XOR, sizeof(cr_XOR_TYPE), TRUE))
             {
-              g_print("Line %d has been tampered!\n", lj);
-              (void) fprintf(ctx->protocolFile, "INFO: Line %d has been tampered!\n", lj);
+              g_print("Line %u has been tampered!\n", lj);
+              (void) fprintf(ctx->protocolFile, "INFO: Line %u has been tampered!\n", lj);
             }
 
           // null the tampered vector.
@@ -841,7 +841,7 @@ cr_Result cr_verifySingleLogFile(cr_VerifierContext *ctx)
       gpa_v->pdata[i] = p_xor_i;
     } i
 #endif
-  cr_Tau_i *tau_data = (cr_Tau_i *)garr_Tau->data;
+  const cr_Tau_i *tau_data = (cr_Tau_i *)garr_Tau->data;
   for (guint i = 0; i < v_length; i++)
     {
       cr_XOR_TYPE *p_dest = &data_block[i];
@@ -1099,7 +1099,7 @@ GString *cr_decryptLog(cr_KEY_TYPE key, cr_XOR_TYPE encLogMessage)
 //
 // retuns TRUE on SUCCESS and FALSE on FAILURE
 
-gboolean cr_readMasterKey(char *path, unsigned char key[KEY_SIZE])
+gboolean cr_readMasterKey(const char *path, unsigned char key[KEY_SIZE])
 {
   if (NULL == path)
     {

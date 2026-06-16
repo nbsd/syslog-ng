@@ -385,6 +385,8 @@ make check.
 # syslog-ng
 #-----------------------------------------------------------------------
 
+#-- The following paths must be adjusted ---
+
 SYSLOG_DIR="$HOME/Software/syslog-ng"
 export SYSLOG_DIR
 
@@ -393,6 +395,42 @@ export TESTBAK_DIR
 
 SW_INSTALL_DIR="$HOME/Software/install"
 export SW_INSTALL_DIR
+
+#-- include directory, depends on compiler etc.
+export LINTFLAGS="-I/usr/include \
+-I${SYSLOG_DIR}/lib \
+-I${SYSLOG_DIR}/modules/secure-logging \
+-I${SYSLOG_DIR}/modules/secure-logging/crashrecovery/cr_common \
+-I${SYSLOG_DIR}/modules/secure-logging/crashrecovery/cr_destination \
+-I${SYSLOG_DIR}/modules/secure-logging/crashrecovery/cr_logger \
+-I${SYSLOG_DIR}/modules/secure-logging/crashrecovery/cr_verifier \
+-I${SYSLOG_DIR}/lib/eventlog/src \
+-I${SW_INSTALL_DIR}/include/syslog-ng \
+-I/usr/include/glib-2.0 \
+-I/usr/include/x86_64-linux-gnu \
+-I/usr/include/x86_64-linux-gnu/bits \
+-I/usr/include/x86_64-linux-gnu/bits/types \
+-I/usr/lib/x86_64-linux-gnu/glib-2.0/include \
+-I/usr/lib/gcc/x86_64-linux-gnu/13/include \
+"
+
+#-- Cppcheck alias with short file name and timestamped output -----
+#
+cppcheck_test() {
+    local filename="$1"
+    if [ ! -f "${filename}" ]; then
+        echo "Error: File '${filename}' does not exist." >&2
+        return 1
+    fi
+    local shortname=$(basename "$filename")
+    local basename="${shortname%.*}"
+    mkdir -p "${TESTBAK_DIR}/cppcheck"  # Create directory if it doesn't exist
+    cppcheck -v $LINTFLAGS --suppress=unusedFunction --enable=all "${filename}" 2>&1 | \
+    tee "${TESTBAK_DIR}/cppcheck/cppcheck_${basename}_$(date +%Y-%m-%d_%H%M%S).txt"
+}
+# Example call: runlint slog.c
+alias runlint='cppcheck_test'
+
 
 # -- Crash Recovery Standalone -----
 # --- small log file with 1000 lines

@@ -39,7 +39,7 @@ void cr_print_cpu_cfg(void);
 GString *get_cpu_config_info(gboolean is_add_new_line);
 cr_Result cr_Verify(cr_VerifierContext *ctx);
 cr_Result cr_verifySingleLogFile(cr_VerifierContext *ctx);
-gboolean cr_readMasterKey(char *path, unsigned char key[KEY_SIZE]);
+gboolean cr_readMasterKey(const char *path, unsigned char key[KEY_SIZE]);
 GString *cr_decryptLog(cr_KEY_TYPE key, cr_XOR_TYPE encLogMessage);
 
 guint fnv1a_hash_ID_LEN(gconstpointer key);
