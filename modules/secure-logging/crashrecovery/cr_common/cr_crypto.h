@@ -168,8 +168,6 @@ unsigned int cr_UniformRandomInt(cr_PRGContext *ctx, const unsigned int upperBou
  */
 //int DRN_thesis(unsigned char *seed, int k, const int upperBound, int *kRandom);
 int cr_DRN(unsigned char seed[KEY_SIZE], const int the_k, const int upperBound, int kRandom[THE_K]);
-// int cr_DRN_dummy(unsigned char seed[KEY_SIZE], const int the_k, const int upperBound, int kRandom[THE_K]);
-
 
 
 

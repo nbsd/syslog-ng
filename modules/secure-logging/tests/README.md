@@ -415,7 +415,6 @@ export LINTFLAGS="-I/usr/include \
 "
 
 #-- Cppcheck alias with short file name and timestamped output -----
-#
 cppcheck_test() {
     local filename="$1"
     if [ ! -f "${filename}" ]; then
@@ -425,10 +424,11 @@ cppcheck_test() {
     local shortname=$(basename "$filename")
     local basename="${shortname%.*}"
     mkdir -p "${TESTBAK_DIR}/cppcheck"  # Create directory if it doesn't exist
-    cppcheck -v $LINTFLAGS --suppress=unusedFunction --enable=all "${filename}" 2>&1 | \
+    cppcheck -v $LINTFLAGS --suppress=unusedFunction \
+    --enable=all "${filename}" 2>&1 | \
     tee "${TESTBAK_DIR}/cppcheck/cppcheck_${basename}_$(date +%Y-%m-%d_%H%M%S).txt"
 }
-# Example call: runlint slog.c
+# Example call in terminal inside folder of file to check: runlint slog.c
 alias runlint='cppcheck_test'
 
 

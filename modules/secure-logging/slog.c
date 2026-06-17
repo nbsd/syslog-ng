@@ -63,7 +63,7 @@ static const char modes[NUM_MODES][LEN_MODES] = { "r", "r+", "w", "w+", "a", "a+
 static gboolean close_channel(SLogFile *f);
 
 // Retrieve counter from encrypted log entry
-static gboolean getCounter(GString *entry, guint64 *logEntryOnDisk);
+static gboolean getCounter(const GString *entry, guint64 *logEntryOnDisk);
 
 // Check whether value is contained in table
 static gboolean tableContainsKey(GHashTable *table, guint64 value);
@@ -89,17 +89,17 @@ static void SLogStringFree(gpointer *arg);
  *
  * Note: encKey and MACKey must have space to hold KEY_LENGTH many bytes.
  */
-gboolean deriveSubKeys(guchar *mainKey, guchar *encKey, guchar *MACKey)
+gboolean deriveSubKeys(const guchar *mainKey, guchar *encKey, guchar *MACKey)
 {
   return deriveEncSubKey(mainKey, encKey) && deriveMACSubKey(mainKey, MACKey);
 }
 
-gboolean deriveEncSubKey(guchar *mainKey, guchar *encKey)
+gboolean deriveEncSubKey(const guchar *mainKey, guchar *encKey)
 {
   return PRF(mainKey, KEYPATTERN, sizeof(KEYPATTERN), encKey, KEY_LENGTH);
 }
 
-gboolean deriveMACSubKey(guchar *mainKey, guchar *MACKey)
+gboolean deriveMACSubKey(const guchar *mainKey, guchar *MACKey)
 {
   return PRF(mainKey, MACPATTERN, sizeof(MACPATTERN), MACKey, KEY_LENGTH);
 }
@@ -217,8 +217,8 @@ gboolean get_path_mac0(const gchar *pathAggMac, gchar *pathMac0, size_t sizePath
  * Length of ciphertext (>=0)
  * <0 on error
  */
-int sLogEncrypt(guchar *plaintext, int plaintext_len,
-                guchar *key, guchar *iv,
+int sLogEncrypt(const guchar *plaintext, int plaintext_len,
+                const guchar *key, const guchar *iv,
                 guchar *ciphertext, guchar *tag)
 {
   /*
@@ -327,7 +327,7 @@ CLEANUP_SLOGENCRYPT:
  * < 0 in case of error
  */
 
-int sLogGMAC(guchar *plaintext, int plaintext_len, guchar *key, guchar *iv, guchar *tag)
+int sLogGMAC(const guchar *plaintext, int plaintext_len, const guchar *key, const guchar *iv, guchar *tag)
 {
   /* This function performs GMAC (Tag generation only).
    * No data is encrypted. The 'ciphertext' buffer remains untouched but seems to be needed.
@@ -454,11 +454,11 @@ CLEANUP_SLOGGMAC:
  * -1 in case verification fails
  * 0 on error
  */
-int sLogDecrypt(guchar *ciphertext,
+int sLogDecrypt(const guchar *ciphertext,
                 int ciphertext_len,
                 guchar *tag,
-                guchar *key,
-                guchar *iv,
+                const guchar *key,
+                const guchar *iv,
                 guchar *plaintext)
 {
   EVP_CIPHER_CTX *ctx = NULL;
@@ -559,8 +559,8 @@ CLEANUP_SLOGDECRYPT:
 gboolean sLogEntry(
   guint64 numberOfLogEntries,
   GString *text,
-  guchar *mainKey,
-  guchar *inputBigMac,
+  const guchar *mainKey,
+  const guchar *inputBigMac,
   GString *output,
   guchar *outputBigMac,
   gsize outputBigMac_capacity,
@@ -756,7 +756,7 @@ gboolean deriveKey(guchar *dst, guint64 index, guint64 currentKey)
  *   FALSE on error
  *
  */
-gboolean cmac(guchar *key, const void *input,
+gboolean cmac(const guchar *key, const void *input,
               gsize length, guchar *out,
               gsize *outlen, gsize out_capacity)
 {
@@ -956,7 +956,7 @@ gboolean evolveKey(guchar *key)
  *  FALSE on error
  *
  */
-gboolean PRF(guchar *key, guchar *originalInput,
+gboolean PRF(const guchar *key, const guchar *originalInput,
              guint64 originalInputLength, guchar *output,
              guint64 outputLength)
 {
@@ -1075,7 +1075,7 @@ gboolean generateMasterKey(guchar *masterkey)
  * memory.
  */
 
-gboolean deriveHostKey(guchar *masterkey, gchar *macAddr, gchar *serial, guchar *hostkey)
+gboolean deriveHostKey(const guchar *masterkey, const gchar *macAddr, const gchar *serial, guchar *hostkey)
 {
   gchar concatString[strlen(macAddr) + strlen(serial) + 1];
   concatString[0] = 0;
@@ -1092,7 +1092,7 @@ gboolean deriveHostKey(guchar *masterkey, gchar *macAddr, gchar *serial, guchar 
  * TRUE on success
  * FALSE on error
  */
-gboolean writeAggregatedMAC(gchar *filename, guchar *outputBuffer)
+gboolean writeAggregatedMAC(const gchar *filename, guchar *outputBuffer)
 {
   SLogFile *f = create_file(filename, "w+");
 
@@ -1167,7 +1167,7 @@ gboolean writeAggregatedMAC(gchar *filename, guchar *outputBuffer)
  * TRUE on success
  * FALSE on error
  */
-gboolean readAggregatedMAC(gchar *filename, guchar *outputBuffer)
+gboolean readAggregatedMAC(const gchar *filename, guchar *outputBuffer)
 {
   SLogFile *f = create_file(filename, "r");
 
@@ -1258,7 +1258,7 @@ gboolean readAggregatedMAC(gchar *filename, guchar *outputBuffer)
  * TRUE on success
  * FALSE on error
  */
-gboolean readKey(guchar *destKey, guint64 *destCounter, gchar *keypath)
+gboolean readKey(guchar *destKey, guint64 *destCounter, const gchar *keypath)
 {
   SLogFile *f = create_file(keypath, "r");
 
@@ -1349,7 +1349,7 @@ gboolean readKey(guchar *destKey, guint64 *destCounter, gchar *keypath)
  * @param keypath Full file name of key file
  * @return TRUE on success, FALSE on error
  */
-gboolean writeKey(guchar *key, guint64 counter, gchar *keypath)
+gboolean writeKey(guchar *key, guint64 counter, const gchar *keypath)
 {
   SLogFile *f = create_file(keypath, "w+");
   if (f == NULL)
@@ -1446,7 +1446,7 @@ gboolean iterateBuffer(
   GPtrArray *input,
   guint64 *nextLogEntry,
   guchar *mainKey,
-  guchar *keyZero,
+  const guchar *keyZero,
   guint keyNumber,
   GPtrArray *output,
   guint64 *numberOfLogEntries,
@@ -1467,7 +1467,7 @@ gboolean iterateBuffer(
   for (guint64 i = 0; i < entriesInBuffer; i++)
     {
       g_ptr_array_add(output, g_string_new(NULL));
-      GString *entry = (GString *)g_ptr_array_index(input, i);
+      const GString *entry = (GString *)g_ptr_array_index(input, i);
       guint64 len = entry->len;
       guint64 logEntryOnDisk;
 
@@ -1646,7 +1646,7 @@ gboolean iterateBuffer(
                     {
                       memcpy(pt, &binBuf[IV_LENGTH + AES_BLOCKSIZE], outputLength - IV_LENGTH - AES_BLOCKSIZE);
                       //-- check TAG ---
-                      guchar *tag_expected = &binBuf[IV_LENGTH]; //-- expected tag
+                      const guchar *tag_expected = &binBuf[IV_LENGTH]; //-- expected tag
                       guchar tag_recalc[AES_BLOCKSIZE];
                       int retvalGMAC = sLogGMAC(pt, outputLength - IV_LENGTH - AES_BLOCKSIZE, encKey, binBuf, tag_recalc);
                       if (0 == retvalGMAC) //-- 0 means success of sLogGMAC (tag generated successfully)
@@ -1770,8 +1770,8 @@ gboolean iterateBuffer(
 gboolean finalizeVerify(
   guint64 startingEntry,
   guint64 entriesInFile,
-  guchar *aggMAC,
-  guchar *cmac_tag,
+  const guchar *aggMAC,
+  const guchar *cmac_tag,
   GHashTable **tab)
 {
   if (tab == NULL || *tab == NULL)
@@ -1847,7 +1847,7 @@ gboolean initVerify(
       return FALSE;
     }
 
-  GString *str = (GString *)g_ptr_array_index(input, 0);
+  const GString *str = (GString *)g_ptr_array_index(input, 0);
 
   if (str->len > (COUNTER_LENGTH + 1))
     {
@@ -1897,11 +1897,11 @@ gboolean initVerify(
  * FALSE on error
  */
 gboolean iterativeFileVerify(
-  guchar *previousMAC,
+  const guchar *previousMAC,
   guchar *mainKey,
-  char *inputFileName,
-  guchar *aggMAC,
-  char *outputFileName,
+  const char *inputFileName,
+  const guchar *currentMAC,
+  const char *outputFileName,
   guint64 entriesInFile,
   guint64 chunkLength,
   guint64 keyNumber,
@@ -2107,7 +2107,7 @@ gboolean iterativeFileVerify(
       msg_info(SLOG_INFO_PREFIX, evt_tag_str("Reason",
                                              "We started with key key0. There might be a lot of warnings about missing log entries."));
     }
-  if (!finalizeVerify(startingEntry, entriesInFile, aggMAC, cmac_tag, &tab))
+  if (!finalizeVerify(startingEntry, entriesInFile, currentMAC, cmac_tag, &tab))
     {
       result = FALSE;
     }
@@ -2158,9 +2158,9 @@ CLEANUP_ITERATIVEFILEVERIFY:
  * FALSE on error
  */
 gboolean fileVerify(guchar *mainKey,
-                    char *inputFileName,
-                    char *outputFileName,
-                    guchar *aggMAC,
+                    const char *inputFileName,
+                    const char *outputFileName,
+                    const guchar *currentMAC,
                     guint64 entriesInFile,
                     guint64 chunkLength,
                     guchar mac0[CMAC_LENGTH],
@@ -2401,7 +2401,7 @@ gboolean fileVerify(guchar *mainKey,
   g_ptr_array_set_size(outputBuffer, 0);
   g_ptr_array_set_size(inputBuffer, 0);
 
-  if (!finalizeVerify(startingEntry, entriesInFile, aggMAC, cmac_tag, &tab))
+  if (!finalizeVerify(startingEntry, entriesInFile, currentMAC, cmac_tag, &tab))
     {
       result = FALSE;
     }
@@ -2593,7 +2593,7 @@ gboolean validFileNameArgCheckDirOnly(const gchar *option_name, const gchar *val
 
 
 // Retrieve counter from encrypted log entry
-gboolean getCounter(GString *entry, guint64 *logEntryOnDisk)
+gboolean getCounter(const GString *entry, guint64 *logEntryOnDisk)
 {
   if (G_UNLIKELY(!entry || !logEntryOnDisk || entry->len < COUNTER_LENGTH))
     {

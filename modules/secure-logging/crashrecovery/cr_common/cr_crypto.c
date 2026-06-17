@@ -396,7 +396,7 @@ static int cr_exists(int element, const int arr[], size_t size)
 
 unsigned int cr_UniformRandomInt(cr_PRGContext *ctx, const unsigned int upperBound)
 {
-  unsigned long long multipleOfUpperBound; //-- Fix ensure no overflow in case i386 (endless loop)
+  unsigned long long multipleOfUpperBound; //-- Fixed. Must be ULL, else overflow when i386!
   unsigned int rand;
   unsigned char *randomBuffer;
 
@@ -415,8 +415,7 @@ unsigned int cr_UniformRandomInt(cr_PRGContext *ctx, const unsigned int upperBou
   // in the case the upper bound is a multiple of 2^32, the condition below holds anyeay, because it has to be less than 2^32,
   // so it will work with the largest possible unsigned int.
 
-  multipleOfUpperBound = (1ULL << 32) - ((1ULL << 32) %
-                                         upperBound); //-- Fix: unsigned long long else might result in 0 on i386 due overflow
+  multipleOfUpperBound = (1ULL << 32) - ((1ULL << 32) % upperBound); //-- Fixed, i386, 1ULL (!)
   randomBuffer = g_malloc0(sizeof(unsigned int));
 
   for (;;)
@@ -434,51 +433,6 @@ unsigned int cr_UniformRandomInt(cr_PRGContext *ctx, const unsigned int upperBou
   g_free(randomBuffer);
   return rand % upperBound;
 }
-
-
-#if 0
-int cr_DRN_dummy(unsigned char seed[KEY_SIZE], const int the_k, const int upperBound, int kRandom[THE_K])
-{
-  unsigned int number;
-  int i = 0;
-  int high = upperBound - 1; //-- index based random number. First index is 0.
-  int low = 0;
-  (void) seed;
-
-  if (upperBound < the_k) //-- BUG FIX to avoid endless while loop for special ..
-    {
-      // .. unlikely case of small amount of log lines
-      g_warning("cr_DRN_dummy, upperBound provides only %d different random numbrs but the_k %d are needed at least to leave while loop!\n",
-                upperBound, the_k);
-      return 0; //-- ERROR
-    }
-
-  if (2 >= upperBound && upperBound > INT_MAX)
-    {
-      g_warning("Failed: cr_DRN_dummy, upperBound %d out of range, the_k: %d\n", upperBound, the_k);
-      return 0; //-- ERROR
-    }
-
-  // Fill the array with -1
-  // thats why the upper bound cant be larger than int_max
-  for (int r = 0; r < the_k; ++r)
-    kRandom[r] = -1;
-
-  i = 0;
-  while (i < the_k)
-    {
-      // rand()%((high+1)-low)+low;
-      number = rand() % ((high + 1) - low) + low;
-      // check if the random number already exists in the array of the_k random numbers.
-      if (!cr_exists(number, kRandom, the_k))
-        {
-          kRandom[i] = number;
-          i++;
-        }
-    }
-  return 1; //-- SUCCESS
-}
-#endif
 
 
 //----------------------------------------------------------------------
@@ -526,17 +480,27 @@ int cr_DRN(unsigned char seed[KEY_SIZE], const int the_k, const int upperBound, 
       return 0; //-- ERROR
     }
 
+  const gint LEAVE_LOOP = the_k * 1042; //-- the_k - typical 5 - should be enough, safe
+  gint a = 0;
   while (i < the_k)
     {
-      //-- TODO endless loop in case i386? How is ensured that i is incremented?
-
       //-- rand % upperbound so upperBound must be >= the_k else endless loop while
-      rand = cr_UniformRandomInt(ctx, upperBound); //-- fixed
+      rand = cr_UniformRandomInt(ctx, upperBound); //-- fixed, for i386 old code ..
+      // .. overflows and rand was not changing and caused an endless loop here!
+
       // check if the random number already exists in the arra of k random numbers.
       if (!cr_exists(rand, kRandom, the_k))
         {
           kRandom[i] = rand;
           i++;
+        }
+
+      //-- ensure no endless loop when rand generation is wrong
+      if (LEAVE_LOOP < ++a)
+        {
+          g_warning("Failed: cr_DRN, rand does not change!\n");
+          g_free(ctx);
+          return 0; //-- ERROR
         }
     }
 
