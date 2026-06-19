@@ -385,7 +385,7 @@ make check.
 # syslog-ng
 #-----------------------------------------------------------------------
 
-#-- The following paths must be adjusted ---
+#-- The following paths might need to be adjusted ---
 
 SYSLOG_DIR="$HOME/Software/syslog-ng"
 export SYSLOG_DIR
@@ -396,8 +396,8 @@ export TESTBAK_DIR
 SW_INSTALL_DIR="$HOME/Software/install"
 export SW_INSTALL_DIR
 
-#-- include directory, depends on compiler etc.
-export LINTFLAGS="-I/usr/include \
+#-- Define the base LINTFLAGS ---
+export UBUNTU_LINTFLAGS="-I/usr/include \
 -I${SYSLOG_DIR}/lib \
 -I${SYSLOG_DIR}/modules/secure-logging \
 -I${SYSLOG_DIR}/modules/secure-logging/crashrecovery/cr_common \
@@ -413,8 +413,27 @@ export LINTFLAGS="-I/usr/include \
 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include \
 -I/usr/lib/gcc/x86_64-linux-gnu/13/include \
 "
+export ROCKY_LINTFLAGS="-I/usr/include \
+-I${SYSLOG_DIR}/lib \
+-I${SYSLOG_DIR}/modules/secure-logging \
+-I${SYSLOG_DIR}/modules/secure-logging/crashrecovery/cr_common \
+-I${SYSLOG_DIR}/modules/secure-logging/crashrecovery/cr_destination \
+-I${SYSLOG_DIR}/modules/secure-logging/crashrecovery/cr_logger \
+-I${SYSLOG_DIR}/modules/secure-logging/crashrecovery/cr_verifier \
+-I${SYSLOG_DIR}/lib/eventlog/src \
+-I${SW_INSTALL_DIR}/include/syslog-ng \
+-I/usr/bin/gcc \
+-I/usr/include/glib-2.0 \
+-I/usr/include/glib-2.0/glib \
+-I/usr/lib64/glib-2.0/include \
+-I/usr/include/json-c \
+-I/usr/lib/clang/21/include \
+-I/usr/lib/gcc/x86_64-redhat-linux/11/include \
+"
 
-#-- Cppcheck alias with short file name and timestamped output -----
+export LINTFLAGS=${ROCKY_LINTFLAGS}
+
+#-- Cppcheck alias with short file name and timestamped output ---
 cppcheck_test() {
     local filename="$1"
     if [ ! -f "${filename}" ]; then
@@ -423,18 +442,66 @@ cppcheck_test() {
     fi
     local shortname=$(basename "$filename")
     local basename="${shortname%.*}"
-    mkdir -p "${TESTBAK_DIR}/cppcheck"  # Create directory if it doesn't exist
-    cppcheck -v $LINTFLAGS --suppress=unusedFunction \
-    --enable=all "${filename}" 2>&1 | \
-    tee "${TESTBAK_DIR}/cppcheck/cppcheck_${basename}_$(date +%Y-%m-%d_%H%M%S).txt"
+    mkdir -p "${TESTBAK_DIR}/cppcheck"
+    local NOW=$(date +%Y-%m-%d_%H%M_%S)
+    cppcheck -v \
+    -Dgboolean=_Bool \
+    -DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_68 \
+    -DOPENSSL_VERSION_NUMBER=0x30000000L \
+    -D__x86_64__ \
+    ${LINTFLAGS} \
+    --suppress=unusedFunction \
+    --addon=misra \
+    --inconclusive \
+    --enable=all \
+    "${filename}" 2>&1 | tee -a "${TESTBAK_DIR}/cppcheck/cppcheck_${basename}_${NOW}.txt"
 }
-# Example call in terminal inside folder of file to check: runlint slog.c
 alias runlint='cppcheck_test'
+
+# Usage: $ runlint <file-to-check>
+# Example: check slog.c:
+# cd ~/Software/syslog-ng/modules/secure-logging
+# runlint ./slog.c
+
+
+#-- Helper for alias blogvim ---
+lint_open_newest() {
+    local target_dir="${TESTBAK_DIR}/cppcheck"
+    if [ ! -d "${target_dir}" ]; then
+        echo "Error: Directory ${target_dir} does not exist."
+        return 1
+    fi
+    (
+        cd "${target_dir}" || exit
+        local newest_file=$(ls -t cppcheck*.txt 2>/dev/null | head -n 1)
+        if [ -n "${newest_file}" ]; then
+            vim "${newest_file}"
+        else
+            echo "No cppcheck file found in ${target_dir}"
+        fi
+    )
+}
+alias vimlint='lint_open_newest'
+
+# Usage: vimlint
+# Notes:
+# - After runlint <file> has been executed, might take some time, the last
+# output can be viewed with vim.
+# - The most warnings are not relevant. But sometimes some are important.
+# - The purpose of all this is not only to detect hidden errors also to save
+#   effort on pull requests.
 
 
 # -- Crash Recovery Standalone -----
 # --- small log file with 1000 lines
 alias crlogs='${SW_INSTALL_DIR}/bin/cr_logger \
+--key "${TESTBAK_DIR}/cr/master.key" \
+--in "${TESTBAK_DIR}/cr/msg1000.txt" \
+--out "${TESTBAK_DIR}/cr/msg1000.enc" \
+--maxlogs 1000'
+
+alias trace_crlogs='strace -x -e trace=read,write,fsync,file,network -o ${TESTBAK_DIR}/cr/analysis_l_$(date +"%Y-%m-%d_%H-%M-%S").log \
+${SW_INSTALL_DIR}/bin/cr_logger \
 --key "${TESTBAK_DIR}/cr/master.key" \
 --in "${TESTBAK_DIR}/cr/msg1000.txt" \
 --out "${TESTBAK_DIR}/cr/msg1000.enc" \
@@ -446,21 +513,26 @@ alias crverifys='${SW_INSTALL_DIR}/bin/cr_verifier \
 --out "${TESTBAK_DIR}/cr/msg1000_verifier.txt" \
 --maxlogs 1000'
 
-# ---
+alias trace_crverifys='strace -x -e trace=read,write,fsync,file,network -o ${TESTBAK_DIR}/cr/analysis_v_$(date +"%Y-%m-%d_%H-%M-%S").log \
+${SW_INSTALL_DIR}/bin/cr_verifier \
+--key "${TESTBAK_DIR}/cr/master.key" \
+--in "${TESTBAK_DIR}/cr/msg1000.enc" \
+--out "${TESTBAK_DIR}/cr/msg1000_verifier.txt" \
+--maxlogs 1000'
+
+# -- current test
 
 alias crlog='${SW_INSTALL_DIR}/bin/cr_logger \
 --key "${TESTBAK_DIR}/cr/master.key" \
---in "${TESTBAK_DIR}/cr/msg5000.txt" \
---out "${TESTBAK_DIR}/cr/msg5000.enc" \
---maxlogs 5000'
+--in "${TESTBAK_DIR}/cr/msg17937.txt" \
+--out "${TESTBAK_DIR}/cr/msg17937.enc" \
+--maxlogs 17937'
 
 alias crverify='${SW_INSTALL_DIR}/bin/cr_verifier \
 --key "${TESTBAK_DIR}/cr/master.key" \
---in "${TESTBAK_DIR}/cr/msg5000.enc" \
---out "${TESTBAK_DIR}/cr/msg5000_verifier.txt" \
---maxlogs 5000'
-
-# ---
+--in "${TESTBAK_DIR}/cr/msg17937.enc" \
+--out "${TESTBAK_DIR}/cr/msg17937_verifier.txt" \
+--maxlogs 17937'
 
 # --- larger log file with 6696 lines
 alias crlogx='${SW_INSTALL_DIR}/bin/cr_logger \
@@ -500,8 +572,8 @@ alias gobin='cd ${SW_INSTALL_DIR}/bin'
 alias gosbin='cd ${SW_INSTALL_DIR}/sbin'
 alias gobackup='cd $HOME/backup'
 alias goblog='cd $HOME/backup/05_build_log'
-alias gotest='cd ${TESTBAK_DIR}'
 
+alias gotest='cd ${TESTBAK_DIR}'
 alias gotest11='cd ${TESTBAK_DIR}/cli11_enc_syslog_verify_n'
 alias gotest12v1='cd ${TESTBAK_DIR}/cli12v1_direct_crypt_verify_i'
 alias gotest12v2='cd ${TESTBAK_DIR}/cli12v2_base64_crypt_verify_i'
@@ -580,7 +652,7 @@ blog_open_newest() {
     )
 }
 
-alias blogvim='blog_open_newest'
+alias vimblog='blog_open_newest'
 
 #-----------------------------------------------------------------------
 # End of aliasse for syslog-ng dev

@@ -326,7 +326,7 @@ gboolean writeKey(guchar *key, guint64 counter, const gchar *keypath);
  * TRUE on success
  * FALSE on error
  */
-gboolean fileVerify(guchar *key,
+gboolean fileVerify(guchar *mainKey,
                     const char *inputFileName,
                     const char *outputFileName,
                     const guchar *currentMAC,
@@ -354,7 +354,7 @@ gboolean iterativeFileVerify(const guchar *previousMAC,
 
 /* Set up log verification */
 gboolean initVerify(guint64 entriesInFile,
-                    guchar *key,
+                    guchar *mainKey,
                     guint64 *nextLogEntry,
                     guint64 *startingEntry,
                     GPtrArray *input);
@@ -363,7 +363,7 @@ gboolean initVerify(guint64 entriesInFile,
 gboolean iterateBuffer(guint64 entriesInBuffer,
                        GPtrArray *input,
                        guint64 *nextLogEntry,
-                       guchar *key,
+                       guchar *mainKey,
                        const guchar *keyZero,
                        guint keyNumber,
                        GPtrArray *output,
@@ -376,7 +376,7 @@ gboolean iterateBuffer(guint64 entriesInBuffer,
 /* Finalize the verification */
 gboolean finalizeVerify(guint64 startingEntry,
                         guint64 entriesInFile,
-                        const guchar *aggMac,
+                        const guchar *aggMAC,
                         const guchar *cmac_tag,
                         GHashTable **tab);
 
@@ -398,7 +398,7 @@ gboolean get_path_mac0(const char *pathAggMac, char *pathMac0, size_t sizePathMa
 
 /* Pseudo-random function implementation */
 gboolean PRF(const guchar *key, const guchar *originalInput,
-             guint64 inputLength, guchar *output,
+             guint64 originalInputLength, guchar *output,
              guint64 outputLength);
 
 /*  Print usage message and clean up */
