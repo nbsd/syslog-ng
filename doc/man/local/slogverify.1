@@ -27,7 +27,7 @@ The file that contains the plain text log entries after decryption and verificat
 .IP \(bu 2
 buffers
 .PP
-Optional number of input buffers. The number of buffers can be used for performance adjustments in case the log file to be verified is very large and cannot be processed at once. It is a positive number of log entries that can be held in memory during verification. The minimum number if 10 and the maximum number is 4294967295. If this argument is not supplied the default of 1000 is used.
+Optional number of input buffers. The number of buffers can be used for performance adjustments in case the log file to be verified is very large and cannot be processed at once. It is a positive number of log entries that can be held in memory during verification. The minimum number is 10 and the maximum number is 1073741823. If this argument is not supplied, the default of 1000 is used.
 .RE
 .SH OPTIONS
 .PP

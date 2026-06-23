@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2025 Airbus Commercial Aircraft
+ * Copyright (c) 2019-2026 Airbus Commercial Aircraft
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -36,8 +36,6 @@
 #define SLOG_OPENSSL_LIBRARY_ERROR 4000
 
 /* file handling */
-#define NUM_MODES 6
-#define LEN_MODES 2
 #define SLOG_FILE_DOMAIN 100
 #define SLOG_FILE_READY 1000
 #define SLOG_FILE_OPEN 1001
@@ -56,18 +54,18 @@
 /* 2025-12-04 */
 #define IS_LIMIT_LOGSTR 0 /* 0: Do not truncate log string to length of MESSAGE_LEN octets */
 
-#define AES_BLOCKSIZE 16
-#define IV_LENGTH 12
-#define KEY_LENGTH 32
-#define CMAC_LENGTH 16
+#define AES_BLOCKSIZE 16U
+#define IV_LENGTH 12U
+#define KEY_LENGTH 32U
+#define CMAC_LENGTH 16U
 #define KEY_ERROR 0x20
 #define KEY_FILE_ERROR 0x20
 #define KEY_READ_ERROR 0x21
 #define KEY_WRITE_ERROR 0x22
-#define COLON 1
-#define BLANK 1
-#define COUNTER_LENGTH 12 /* We use an 8 byte counter resulting in 12 byte BASE64 encoding */
-#define CTR_LEN_SIMPLE 20 /* This is for the string representation of 8 byte (=2^64) counters */
+#define COLON 1U
+#define BLANK 1U
+#define COUNTER_LENGTH 12U /* We use an 8 byte counter resulting in 12 byte BASE64 encoding */
+#define CTR_LEN_SIMPLE 20U /* This is for the string representation of 8 byte (=2^64) counters */
 
 /* These are arbitrary constants (with mean) Hamming distance. */
 #define IPAD 0x36
@@ -75,9 +73,9 @@
 #define EPAD 0x6A
 
 /* Buffer size for import and verification */
-#define MIN_BUF_SIZE 10
-#define MAX_BUF_SIZE 1073741823 /* INT_MAX/2 */
-#define DEF_BUF_SIZE 1000 /* Default size */
+#define MIN_BUF_SIZE 10U
+#define MAX_BUF_SIZE 1073741823U /* INT_MAX/2 */
+#define DEF_BUF_SIZE 1000U /* Default size */
 
 /* Error message in case of invalid file */
 #define FILE_ERROR "Invalid path or non existing regular file: "

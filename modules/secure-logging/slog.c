@@ -53,17 +53,9 @@
 #define LONG_OPT_INDICATOR "--"
 #define SHORT_OPT_INDICATOR "-"
 
-SLOG_STATIC_ASSERT(AES_BLOCKSIZE == 16, "Wrong_AES_Block_Size_for_provided_KEY_MAC_GAMMA_initialization");
-
 #define FILL_S16(val) val, val, val, val, val, val, val, val, \
                       val, val, val, val, val, val, val, val
 
-static guchar KEYPATTERN[AES_BLOCKSIZE] = { FILL_S16(IPAD) };
-static guchar MACPATTERN[AES_BLOCKSIZE] = { FILL_S16(OPAD) };
-static guchar GAMMA_SL[AES_BLOCKSIZE] = { FILL_S16(EPAD) };
-
-// File access modes
-static const char modes[NUM_MODES][LEN_MODES] = { "r", "r+", "w", "w+", "a", "a+" };
 static gboolean close_channel(SLogFile *f);
 
 // Retrieve counter from encrypted log entry
@@ -101,11 +93,15 @@ static gboolean deriveSubKeys(const guchar *mainKey, guchar *encKey, guchar *MAC
 
 gboolean deriveEncSubKey(const guchar *mainKey, guchar *encKey)
 {
+  SLOG_STATIC_ASSERT(AES_BLOCKSIZE == 16U, "Wrong_AES_Block_Size_for_provided_KEY_MAC_GAMMA_initialization");
+  static const guchar KEYPATTERN[AES_BLOCKSIZE] = { FILL_S16(IPAD) };
   return PRF(mainKey, KEYPATTERN, sizeof(KEYPATTERN), encKey, KEY_LENGTH);
 }
 
 gboolean deriveMACSubKey(const guchar *mainKey, guchar *MACKey)
 {
+  SLOG_STATIC_ASSERT(AES_BLOCKSIZE == 16U, "Wrong_AES_Block_Size_for_provided_KEY_MAC_GAMMA_initialization");
+  static const guchar MACPATTERN[AES_BLOCKSIZE] = { FILL_S16(OPAD) };
   return PRF(mainKey, MACPATTERN, sizeof(MACPATTERN), MACKey, KEY_LENGTH);
 }
 
@@ -226,12 +222,8 @@ int sLogEncrypt(const guchar *plaintext, int plaintext_len,
                 const guchar *key, const guchar *iv,
                 guchar *ciphertext, guchar *tag)
 {
-  /*
-   * This function is largely borrowed from
-   *
-   * https://wiki.openssl.org/index.php/EVP_Authenticated_Encryption_and_Decryption#Authenticated_Encryption_using_GCM_mode
-   *
-   */
+  // This function is largely borrowed from
+  // https://wiki.openssl.org/index.php/EVP_Authenticated_Encryption_and_Decryption#Authenticated_Encryption_using_GCM_mode
   EVP_CIPHER_CTX *ctx = NULL;
 
   int len;
@@ -253,7 +245,7 @@ int sLogEncrypt(const guchar *plaintext, int plaintext_len,
       goto CLEANUP_SLOGENCRYPT;
     }
 
-  if (IV_LENGTH != 12)
+  if (IV_LENGTH != 12U)
     {
       /* Set IV length if default 12 bytes (96 bits) is not appropriate */
       if (1 != EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, IV_LENGTH, NULL))
@@ -343,7 +335,7 @@ int sLogGMAC(const guchar *plaintext, int plaintext_len, const guchar *key, cons
   int ciphertext_len = 0; // Initialize to 0 as we are not producing ciphertext
   int result = 0;
 
-  if (NULL == plaintext || NULL == key || NULL == iv || NULL == tag)
+  if ((NULL == plaintext) || (NULL == key) || (NULL == iv) || (NULL == tag))
     {
       msg_error(SLOG_ERROR_PREFIX, evt_tag_str("Reason", "sLogGMAC: invalid input"));
       return -42; //-- ERROR
@@ -377,7 +369,7 @@ int sLogGMAC(const guchar *plaintext, int plaintext_len, const guchar *key, cons
       goto CLEANUP_SLOGGMAC;
     }
 
-  if (IV_LENGTH != 12)
+  if (IV_LENGTH != 12U)
     {
       if (1 != EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, IV_LENGTH, NULL))
         {
@@ -485,7 +477,7 @@ int sLogDecrypt(const guchar *ciphertext,
       goto CLEANUP_SLOGDECRYPT;
     }
 
-  if (IV_LENGTH != 12)
+  if (IV_LENGTH != 12U)
     {
       /* Set IV length. Not necessary if this is 12 bytes (96 bits) */
       if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, IV_LENGTH, NULL))
@@ -596,13 +588,13 @@ gboolean sLogEntry(
   // old:  guchar bigBuf[AES_BLOCKSIZE + IV_LENGTH + AES_BLOCKSIZE + slen];
   // Use of heap instad of stack becasue the length of a log message shall be unlimited.
   // Allocate slightly more than twice as much as needed
-  int slen = (int) text->len;
+  gsize slen = text->len;
   if (!slen)
     {
       msg_warning(SLOG_WARNING_PREFIX, evt_tag_str("Reason", "Log string is empty!"));
     }
 
-  guchar *bigBuf = g_try_new0(guchar, AES_BLOCKSIZE + IV_LENGTH + AES_BLOCKSIZE + 2 * (slen + 64) + 1);
+  guchar *bigBuf = g_try_new0(guchar, AES_BLOCKSIZE + IV_LENGTH + AES_BLOCKSIZE + 2U * (slen + 64U) + 1U);
   if (NULL == bigBuf)
     {
       msg_error(SLOG_ERROR_PREFIX, evt_tag_str("Reason", "Unable to allocate memory buffer"));
@@ -621,12 +613,12 @@ gboolean sLogEntry(
   // Generate random nonce
   if (RAND_bytes(iv, IV_LENGTH) == 1)
     {
-      int msg_length = -1; //-- init with ERROR
+      gsize msg_length = 0;
       if (LOGMODE_ENCRYPTED == logmode)
         {
           // Encrypt log data
-          msg_length = sLogEncrypt((guchar *)text->str, slen, encKey, iv, msg, tag);
-          if (msg_length < 0) //-- Fix: Now less than 0 means error
+          int le_ret = sLogEncrypt((guchar *)text->str, slen, encKey, iv, msg, tag);
+          if (le_ret < 0) //-- Fix: Now less than 0 means error
             {
               msg_error(SLOG_ERROR_PREFIX, evt_tag_str("Reason", "Unable to correctly encrypt log message"));
               g_string_printf(output, "%*.*s:%s: %s", COUNTER_LENGTH, COUNTER_LENGTH, counterString,
@@ -635,6 +627,7 @@ gboolean sLogEntry(
               g_free(bigBuf);
               return FALSE; //-- ERROR
             }
+          msg_length = (gsize) le_ret;
           if (msg_length != slen)
             {
               //-- NEVER EVER because EVP_aes_256_gcm is used
@@ -930,16 +923,20 @@ CLEANUP_CMAC:
  */
 gboolean evolveKey(guchar *key)
 {
+  SLOG_STATIC_ASSERT(AES_BLOCKSIZE == 16U, "Wrong_AES_Block_Size_for_provided_KEY_MAC_GAMMA_initialization");
+  static const guchar GAMMA_SL[AES_BLOCKSIZE] = { FILL_S16(EPAD) };
   guchar buf[KEY_LENGTH];
+  gboolean ret;
   if (PRF(key, GAMMA_SL, sizeof(GAMMA_SL), buf, KEY_LENGTH))
     {
       (void) memcpy(key, buf, KEY_LENGTH);
-      return TRUE;
+      ret = TRUE;
     }
   else
     {
-      return FALSE;
+      ret = FALSE;
     }
+  return ret;
 }
 
 /*
@@ -1037,7 +1034,7 @@ gboolean PRF(const guchar *key, const guchar *originalInput,
 
     }
 
-  if (outputLength % CMAC_LENGTH != 0)
+  if ((outputLength % CMAC_LENGTH) != 0U)
     {
       guchar buf[CMAC_LENGTH];
 
@@ -1094,10 +1091,10 @@ gboolean generateMasterKey(guchar *masterkey)
 
 gboolean deriveHostKey(const guchar *masterkey, const gchar *macAddr, const gchar *serial, guchar *hostkey)
 {
-  gchar concatString[strlen(macAddr) + strlen(serial) + 1];
+  gchar concatString[strlen(macAddr) + strlen(serial) + 1U];
   concatString[0] = 0;
-  strncat(concatString, macAddr, sizeof(concatString) - strlen(concatString) - 1);
-  strncat(concatString, serial, sizeof(concatString) - strlen(concatString) - 1);
+  strncat(concatString, macAddr, sizeof(concatString) - strlen(concatString) - 1U);
+  strncat(concatString, serial, sizeof(concatString) - strlen(concatString) - 1U);
   return PRF(masterkey, (guchar *) concatString, strlen(concatString), hostkey, KEY_LENGTH);
 }
 
@@ -1193,7 +1190,7 @@ gboolean readAggregatedMAC(const gchar *filename, guchar *outputBuffer)
     }
   gboolean volatile result = TRUE;
   gboolean volatile cmacOk = TRUE;
-  gchar macdata[2 * CMAC_LENGTH];
+  gchar macdata[2U * CMAC_LENGTH];
 
   // If file does not exist there is nothing to do
   if (!g_file_test(filename, G_FILE_TEST_IS_REGULAR))
@@ -1211,7 +1208,7 @@ gboolean readAggregatedMAC(const gchar *filename, guchar *outputBuffer)
       return FALSE; //-- ERROR
     }
 
-  result = read_from_file(f, macdata, 2 * CMAC_LENGTH);
+  result = read_from_file(f, macdata, 2U * CMAC_LENGTH);
   if (!result)
     {
       msg_error(SLOG_ERROR_PREFIX, evt_tag_str("Reason", "Error read_from_file"));
@@ -1568,7 +1565,7 @@ gboolean iterateBuffer(
               binBuf = &bigBuf[AES_BLOCKSIZE]; //-- points to IV, in this mode its only a pointer, currently empty IV
               gsize len_expected_ivtag_b64 = get_base64_length( IV_LENGTH + AES_BLOCKSIZE ); //-- ideal, when not manipulated
               // COUNTER_LENGTH 12 (in Base64 str len), 1: colon (NONE Base64),
-              if (line->len < (COUNTER_LENGTH + 1 + len_expected_ivtag_b64))
+              if (line->len < (COUNTER_LENGTH + 1U + len_expected_ivtag_b64))
                 {
                   is_tampered = TRUE;
                   msg_warning(SLOG_WARNING_PREFIX, evt_tag_str("Reason", "is_tampered, wrong line->len"), evt_tag_long("Entry: ",
@@ -1576,12 +1573,12 @@ gboolean iterateBuffer(
                 }
               if (!is_tampered)
                 {
-                  g_string_append_len(gstr_ivtag, &(line->str)[COUNTER_LENGTH + 1], len_expected_ivtag_b64 );
+                  g_string_append_len(gstr_ivtag, &(line->str)[COUNTER_LENGTH + 1U], len_expected_ivtag_b64 );
                   b64_iv_tag = (guchar *) & (gstr_ivtag->str)[0];
                   if (is_verbose)
                     {
                       GString *ptest = g_string_new("");
-                      g_string_append_len(ptest, &(line->str)[0], COUNTER_LENGTH + 1 );
+                      g_string_append_len(ptest, &(line->str)[0], COUNTER_LENGTH + 1U);
                       g_print("\n\nline->str:\n%s\nCounterColon:\n%s\nb64_iv_tag:\n%s\n\n", line->str, ptest->str,  b64_iv_tag);
                       g_string_free(ptest, TRUE);
                     }
@@ -1607,7 +1604,7 @@ gboolean iterateBuffer(
                 {
                   (void) memcpy(&bigBuf[AES_BLOCKSIZE], binBuf_iv_tag, IV_LENGTH);
                   (void) memcpy(&bigBuf[AES_BLOCKSIZE + IV_LENGTH], &binBuf_iv_tag[IV_LENGTH], AES_BLOCKSIZE);
-                  gsize offset = COUNTER_LENGTH + 1 + len_expected_ivtag_b64;
+                  gsize offset = COUNTER_LENGTH + 1U + len_expected_ivtag_b64;
                   gsize len_msg = 0;
                   if (line->len > offset)
                     {
@@ -1632,7 +1629,7 @@ gboolean iterateBuffer(
           if (outputLength >= IV_LENGTH + AES_BLOCKSIZE) //-- Fix allow length 0 of msg
             {
               // guchar pt[outputLength - IV_LENGTH - AES_BLOCKSIZE];
-              guchar  *pt = g_try_new0(guchar, outputLength + 2 * (line->len + 64) + 1); //-- safe
+              guchar  *pt = g_try_new0(guchar, outputLength + 2U * (line->len + 64U) + 1U); //-- safe
               if (NULL == pt)
                 {
                   msg_error(SLOG_ERROR_PREFIX,
@@ -1784,7 +1781,7 @@ gboolean finalizeVerify(
   const guchar *cmac_tag,
   GHashTable **tab)
 {
-  if (tab == NULL || *tab == NULL)
+  if ((NULL == tab) || (NULL == *tab))
     {
       msg_warning(SLOG_WARNING_PREFIX,
                   evt_tag_str("Reason",
@@ -1796,11 +1793,11 @@ gboolean finalizeVerify(
 
   // Check which entries are missing
   guint64 notRecovered = 0ULL;
-  for (guint64 i = startingEntry; i < startingEntry + entriesInFile; i++)
+  for (guint64 i = startingEntry; i < (startingEntry + entriesInFile); i++)
     {
       // Hashtable key
-      char key[CTR_LEN_SIMPLE + 1];
-      snprintf(key, CTR_LEN_SIMPLE + 1, "%"G_GUINT64_FORMAT, i);
+      char key[CTR_LEN_SIMPLE + 1U];
+      snprintf(key, CTR_LEN_SIMPLE + 1U, "%"G_GUINT64_FORMAT, i);
       if (!g_hash_table_contains(*tab, key))
         {
           notRecovered++;
@@ -1859,10 +1856,10 @@ gboolean initVerify(
 
   const GString *str = (GString *)g_ptr_array_index(input, 0);
 
-  if (str->len > (COUNTER_LENGTH + 1))
+  if (str->len > (COUNTER_LENGTH + 1U))
     {
       gsize outLen;
-      char buf[COUNTER_LENGTH + 1];
+      char buf[COUNTER_LENGTH + 1U];
       (void) memcpy(buf, str->str, COUNTER_LENGTH);
       buf[COUNTER_LENGTH] = 0;
       guchar *tempInt = g_base64_decode(buf, &outLen);
@@ -2456,6 +2453,7 @@ CLEANUP_FILEVERIFY:
 // Print usage message and clean up
 int slog_usage(GOptionContext *ctx, GOptionGroup *grp, GString *errormsg)
 {
+  (void) grp; //-- [misra-c2012-2.7]
   if (errormsg != NULL)
     {
       g_print ("\nERROR: %s\n\n", errormsg->str);
@@ -2490,7 +2488,7 @@ gboolean validFileNameArg(const gchar *option_name, const gchar *value, gpointer
 
   SLogOptions *opts = (SLogOptions *)data;
 
-  for (SLogOptions *option = opts; option != NULL && option->longname != NULL; option++)
+  for (SLogOptions *option = opts; (NULL != option) && (NULL != option->longname); option++)
     {
       g_string_append(longOption, option->longname);
       g_string_append_c(shortOption, option->shortname);
@@ -2546,7 +2544,7 @@ gboolean validFileNameArgCheckDirOnly(const gchar *option_name, const gchar *val
 
   SLogOptions *opts = (SLogOptions *)data;
 
-  for (SLogOptions *option = opts; option != NULL && option->longname != NULL; option++)
+  for (SLogOptions *option = opts; (NULL != option) && (NULL != option->longname); option++)
     {
       g_string_append(longOption, option->longname);
       g_string_append_c(shortOption, option->shortname);
@@ -2604,13 +2602,13 @@ gboolean validFileNameArgCheckDirOnly(const gchar *option_name, const gchar *val
 // Retrieve counter from encrypted log entry
 gboolean getCounter(const GString *entry, guint64 *logEntryOnDisk)
 {
-  if (G_UNLIKELY(!entry || !logEntryOnDisk || entry->len < COUNTER_LENGTH))
+  if (G_UNLIKELY((!entry) || (!logEntryOnDisk) || (entry->len < COUNTER_LENGTH)))
     {
       msg_error(SLOG_ERROR_PREFIX, evt_tag_str("Reason", "Insufficient data"));
       return FALSE;
     }
   // Allocate the decode buffer on the stack to avoid heap allocation entirely.
-  guchar decoded_buffer[16];
+  guchar decoded_buffer[16U];
   gint state = 0;
   guint save = 0;
   gsize out_len = g_base64_decode_step(entry->str, COUNTER_LENGTH, decoded_buffer, &state, &save);
@@ -2642,8 +2640,8 @@ gboolean tableContainsKey(GHashTable *table, guint64 key)
     }
 
   // Convert to string
-  char keystr[CTR_LEN_SIMPLE + 1];
-  snprintf(keystr, CTR_LEN_SIMPLE + 1, "%"G_GUINT64_FORMAT, key);
+  char keystr[CTR_LEN_SIMPLE + 1U];
+  snprintf(keystr, CTR_LEN_SIMPLE + 1U, "%"G_GUINT64_FORMAT, key);
 
   return g_hash_table_contains(table, keystr);
 }
@@ -2679,7 +2677,7 @@ GString *getLogEntry(SLogFile *f)
   else
     {
       // Cut last character to remove the trailing new line...
-      g_string_truncate(line, line->len - 1);
+      g_string_truncate(line, line->len - 1U);
     }
 
   return line;
@@ -2693,7 +2691,7 @@ gboolean putLogEntry(SLogFile *f, GString *line)
       return FALSE;
     }
 
-  if (line->len != 0)
+  if (line->len != 0U)
     {
       // Add newline
       g_string_append(line, "\n");
@@ -2716,7 +2714,7 @@ void SLogStringFree(gpointer *arg)
 
 SLogFile *create_file(const gchar *filename, const gchar *mode)
 {
-  SLogFile *f = g_try_new0(SLogFile, 1);
+  SLogFile *f = g_try_new0(SLogFile, 1U);
 
   if (f == NULL)
     {
@@ -2735,6 +2733,15 @@ SLogFile *create_file(const gchar *filename, const gchar *mode)
 
 gboolean open_file(SLogFile *f)
 {
+  enum
+  {
+    NUM_MODES = 6,
+    LEN_MODES = 3
+  };
+
+  // File access modes
+  static const char modes[NUM_MODES][LEN_MODES] = { "r", "r+", "w", "w+", "a", "a+" };
+
   if (f == NULL || f->state != SLOG_FILE_READY)
     {
       return FALSE;

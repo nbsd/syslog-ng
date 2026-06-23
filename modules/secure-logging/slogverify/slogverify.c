@@ -37,7 +37,7 @@
 static gboolean is_verbose = FALSE;
 
 // Return TRUE on success, FALSE on error
-gboolean normalMode(char *path_hostkey, char *path_MACfile, char *path_inputlog, char *path_outputlog, int bufsize,
+gboolean normalMode(char *path_hostkey, char *path_MACfile, char *path_inputlog, char *path_outputlog, guint32 bufsize,
                     enum LogMode logmode)
 {
   guchar key[KEY_LENGTH];
@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
   enum LogMode logmode = LOGMODE_ENCRYPTED;
   gint retval = 0; //-- 0: SUCCESS, main logic
   gboolean iterative = FALSE;
-  int bufSize = DEF_BUF_SIZE;
+  guint32 bufSize = DEF_BUF_SIZE;
 
 
   if (TRUE == is_verbose)
@@ -341,7 +341,7 @@ int main(int argc, char *argv[])
         }
     }
 
-  if (argc < 2 || argc > 4)
+  if ((argc < 2) || (argc > 4))
     {
       (void) slog_usage(context, group, NULL);
       return 1; //-- ERROR
@@ -419,9 +419,9 @@ int main(int argc, char *argv[])
     g_string_assign(gstr_path_curMAC, p_canon ? p_canon : "");
     g_free(p_temp);
     g_free(p_canon);
-    if (gstr_path_curMAC->len == 0 ||
-        !is_file_path_safe_and_valid(gstr_path_curMAC->str) ||
-        !g_file_test(gstr_path_curMAC->str, G_FILE_TEST_IS_REGULAR))
+    if ((gstr_path_curMAC->len == 0U) ||
+        (!is_file_path_safe_and_valid(gstr_path_curMAC->str)) ||
+        (!g_file_test(gstr_path_curMAC->str, G_FILE_TEST_IS_REGULAR)))
       {
         msg_error(SLOG_ERROR_PREFIX, evt_tag_str("Reason", "mac-file validation failed"));
         (void) slog_usage(context, group, NULL);
@@ -448,8 +448,8 @@ int main(int argc, char *argv[])
       logmode = convert_str_logmode(str_logmode_arg);
       g_free(str_logmode_arg);
       str_logmode_arg = NULL;
-      if (LOGMODE_PLAIN_DIRECT != logmode && LOGMODE_PLAIN_BASE64 != logmode
-          && LOGMODE_ENCRYPTED != logmode)
+      if ( ((enum LogMode) LOGMODE_PLAIN_DIRECT != logmode) && ((enum LogMode)LOGMODE_PLAIN_BASE64 != logmode)
+           && ((enum LogMode)LOGMODE_ENCRYPTED != logmode) )
         {
           msg_error(SLOG_ERROR_PREFIX,
                     evt_tag_str("Reason",
@@ -488,9 +488,9 @@ int main(int argc, char *argv[])
         g_string_assign(gstr_path_prevhostkey, p_canon ? p_canon : "");
         g_free(p_temp);
         g_free(p_canon);
-        if (gstr_path_prevhostkey->len == 0 ||
-            !is_file_path_safe_and_valid(gstr_path_prevhostkey->str) ||
-            !g_file_test(gstr_path_prevhostkey->str, G_FILE_TEST_IS_REGULAR))
+        if ((gstr_path_prevhostkey->len == 0U) ||
+            (!is_file_path_safe_and_valid(gstr_path_prevhostkey->str)) ||
+            (!g_file_test(gstr_path_prevhostkey->str, G_FILE_TEST_IS_REGULAR)))
           {
             msg_error(SLOG_ERROR_PREFIX, evt_tag_str("Reason", "prev-key-file validation failed"));
             (void) slog_usage(context, group, NULL);
@@ -529,9 +529,9 @@ int main(int argc, char *argv[])
         g_string_assign(gstr_path_prevMAC, p_canon ? p_canon : "");
         g_free(p_temp);
         g_free(p_canon);
-        if (gstr_path_prevMAC->len == 0 ||
-            !is_file_path_safe_and_valid(gstr_path_prevMAC->str) ||
-            !g_file_test(gstr_path_prevMAC->str, G_FILE_TEST_IS_REGULAR))
+        if ((gstr_path_prevMAC->len == 0U) ||
+            (!is_file_path_safe_and_valid(gstr_path_prevMAC->str)) ||
+            (!g_file_test(gstr_path_prevMAC->str, G_FILE_TEST_IS_REGULAR)))
           {
             msg_error(SLOG_ERROR_PREFIX, evt_tag_str("Reason", "prev-mac-file validation failed"));
             (void) slog_usage(context, group, NULL);
@@ -562,9 +562,9 @@ int main(int argc, char *argv[])
     g_string_assign(gstr_path_inputlog, p_canon ? p_canon : "");
     g_free(p_temp);
     g_free(p_canon);
-    if (gstr_path_inputlog->len == 0 ||
-        !is_file_path_safe_and_valid(gstr_path_inputlog->str) ||
-        !g_file_test(gstr_path_inputlog->str, G_FILE_TEST_IS_REGULAR))
+    if ((gstr_path_inputlog->len == 0U) ||
+        (!is_file_path_safe_and_valid(gstr_path_inputlog->str)) ||
+        (!g_file_test(gstr_path_inputlog->str, G_FILE_TEST_IS_REGULAR)))
       {
         msg_error(SLOG_ERROR_PREFIX, evt_tag_str("Reason", "Check of INPUTLOG failed"));
         (void) slog_usage(context, group, NULL);
@@ -590,8 +590,8 @@ int main(int argc, char *argv[])
     g_string_assign(gstr_path_outputlog, p_canon ? p_canon : "");
     g_free(p_temp);
     g_free(p_canon);
-    if (gstr_path_outputlog->len == 0 ||
-        !is_file_path_safe_and_valid(gstr_path_outputlog->str)) //-- file might not exists yet
+    if ((gstr_path_outputlog->len == 0U) ||
+        (!is_file_path_safe_and_valid(gstr_path_outputlog->str))) //-- file might not exists yet
       {
         msg_error(SLOG_ERROR_PREFIX, evt_tag_str("Reason", "Check of OUTPUTLOG failed"));
         (void) slog_usage(context, group, NULL);
@@ -602,25 +602,49 @@ int main(int argc, char *argv[])
   }
   msg_info(SLOG_INFO_PREFIX, evt_tag_str("OUTPUTLOG", gstr_path_outputlog->str));
 
-  // Buffer size arguments if applicable
+
+  //-- Buffer size arguments if applicable ---
+  if (TRUE == is_verbose)
+    {
+      g_print("Buffer counter when argc == 4: argc: %d\n", argc);
+    }
   if (argc == 4)
     {
-      bufSize = atoi(argv[optidx]);
-      if (bufSize <= MIN_BUF_SIZE || bufSize > MAX_BUF_SIZE)
+      char *endptr = NULL;
+      long parsedVal;
+      parsedVal = strtol(argv[optidx], &endptr, 10);
+      if ((endptr == argv[optidx]) || (*endptr != '\0'))
         {
-          msg_error(SLOG_ERROR_PREFIX,
-                    evt_tag_str("Reason", "Invalid buffer size."),
-                    evt_tag_int("Size", bufSize),
-                    evt_tag_int("Minimum buffer size", MIN_BUF_SIZE),
-                    evt_tag_int("Maximum buffer size", MAX_BUF_SIZE));
-          retval = 1; //-- ERROR
-          goto CLEANUP_SLOGVERIFY;
+          msg_warning(SLOG_ERROR_PREFIX, evt_tag_str("Reason", "Failed strtol for buffer size. Default size is used instead!"),
+                      evt_tag_int("Size", bufSize));
+        }
+      else
+        {
+          if ((parsedVal < 0) ||
+              (parsedVal < (long)MIN_BUF_SIZE) ||
+              (parsedVal > (long)MAX_BUF_SIZE))
+            {
+              msg_warning(SLOG_ERROR_PREFIX,
+                          evt_tag_str("Reason", "Invalid buffer size. Default size is used instead!"),
+                          evt_tag_int("Size", bufSize),
+                          evt_tag_int("Minimum buffer size", MIN_BUF_SIZE),
+                          evt_tag_int("Maximum buffer size", MAX_BUF_SIZE));
+            }
+          else
+            {
+              //-- value successfully parsed
+              bufSize = (guint32)parsedVal;
+            }
+        }
+      if (TRUE == is_verbose)
+        {
+          g_print("bufSize: %u\n", bufSize);
         }
     }
 
   if (iterative)
     {
-      if (gstr_path_prevhostkey->len == 0 || gstr_path_prevMAC->len == 0 || gstr_path_curMAC->len == 0)
+      if ((gstr_path_prevhostkey->len == 0U) || (gstr_path_prevMAC->len == 0U) || (gstr_path_curMAC->len == 0U))
         {
           g_print("%s", g_option_context_get_help(context, TRUE, NULL));
           retval = 1; //-- ERROR
@@ -640,7 +664,7 @@ int main(int argc, char *argv[])
     }
   else
     {
-      if (gstr_path_hostkey->len == 0 || gstr_path_curMAC->len == 0)
+      if ((gstr_path_hostkey->len == 0U) || (gstr_path_curMAC->len == 0U))
         {
           g_print("%s", g_option_context_get_help(context, TRUE, NULL));
           retval = 1; //-- ERROR
