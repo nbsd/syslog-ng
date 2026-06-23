@@ -25,7 +25,7 @@
 #-----------------------------------------------------------------------
 # File:   run_cmake_rebuild.sh
 # Author: Airbus Commercial Aircraft <secure-logging@airbus.com>
-# Date:   2026-06-11
+# Date:   2026-06-23
 #
 # Helper script to rebuild all from scratch inclusive installation and
 # test.
@@ -118,7 +118,8 @@ fi
 
 # Define your warning flags. Those do work for both GCC and Clang.
 # WARNING_FLAGS="-Wall -Wextra -Wshadow -Wpedantic"
-WARNING_FLAGS="-Wall -Wextra -Wshadow"
+# WARNING_FLAGS="-Wall -Wextra -Wshadow"
+WARNING_FLAGS="-Wall -Wextra -Wshadow -Wconversion"
 
 BUILD_MODE="debug" # Options: "debug" or "release"
 

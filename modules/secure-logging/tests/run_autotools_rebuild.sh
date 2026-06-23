@@ -25,7 +25,7 @@
 #-----------------------------------------------------------------------
 # File:   run_autotools_rebuild.sh
 # Author: Airbus Commercial Aircraft <secure-logging@airbus.com>
-# Date:   2026-06-11
+# Date:   2026-06-23
 #
 # Helper script to rebuild all from scratch inclusive installation and
 # test.
@@ -78,7 +78,8 @@ CONFIGURATION=(
 )
 
 # export CFLAGS="${CFLAGS} -Wall -Wextra -Wshadow -Wpedantic"
-export CFLAGS="${CFLAGS} -Wall -Wextra -Wshadow"
+# export CFLAGS="${CFLAGS} -Wall -Wextra -Wshadow"
+export CFLAGS="${CFLAGS} -Wall -Wextra -Wshadow -Wconversion"
 
 # current Git branch for build log name
 GIT_BRANCH=""
