@@ -654,6 +654,18 @@ blog_open_newest() {
 
 alias vimblog='blog_open_newest'
 
+
+#-- Criterion Unit Tests (CMake and Autotools use various folders and files) ---
+
+## CMake based 'make check'
+alias gocmaketest='cd ${SYSLOG_DIR}/build/Testing/Temporary'
+alias vimcmaketest='vim ${SYSLOG_DIR}/build/Testing/Temporary/LastTest.log'
+
+## Autotools based 'make check'
+alias goautotest='cd ${SYSLOG_DIR}/build/modules/secure-logging/tests'
+alias vimautotest='vim ${SYSLOG_DIR}/build/modules/secure-logging/tests/test_secure_logging.log'
+
+
 #-----------------------------------------------------------------------
 # End of aliasse for syslog-ng dev
 #-----------------------------------------------------------------------

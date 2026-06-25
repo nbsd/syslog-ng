@@ -212,7 +212,7 @@ gboolean cr_Init(cr_PIContext *ctx)
       return FALSE; //-- ERROR
     }
 
-  size_t fileSize = ctx->m * LOG_LEN; // m * LOG_LEN
+  size_t fileSize = (size_t) ctx->m * LOG_LEN; // m * LOG_LEN
   g_print("cr_Init, fileSize: %ld, ctx->m: %d, LOG_LEN: %d\n", fileSize, ctx->m, LOG_LEN);
 
   // line 2
@@ -269,7 +269,7 @@ gboolean cr_Init_prg(cr_PIContext *ctx, cr_PRGContext **pp_prg)
   g_info("cr_init_prg, ctx->logFile: %p, ctx->m: %d", (void *)(ctx->logFile), ctx->m);
   //dbg_hexdump("cr_Init_prg, ctx->sessionKey", (void *)(ctx->sessionKey), KEY_SIZE);
 
-  size_t fileSize = ctx->m * LOG_LEN; // m * LOG_LEN
+  size_t fileSize = (size_t) ctx->m * LOG_LEN; // m * LOG_LEN
   g_print("cr_Init_prg, fileSize: %ld, ctx->m: %d, LOG_LEN: %d\n", fileSize, ctx->m, LOG_LEN);
 
   // line 2
@@ -293,7 +293,7 @@ gboolean cr_Init_prg(cr_PIContext *ctx, cr_PRGContext **pp_prg)
         }
       // line 4
       // write random pad.
-      ret_randompad = cr_initializeLogFileWithPseudoRandomPad(prgContext, ctx->logFile, ctx->m);
+      ret_randompad = cr_initializeLogFileWithPseudoRandomPad(prgContext, ctx->logFile, (size_t) ctx->m);
       g_free(prgContext);
     }
   else
@@ -310,7 +310,7 @@ gboolean cr_Init_prg(cr_PIContext *ctx, cr_PRGContext **pp_prg)
             }
           // line 4
           // write random pad.
-          ret_randompad = cr_initializeLogFileWithPseudoRandomPad(*pp_prg, ctx->logFile, ctx->m);
+          ret_randompad = cr_initializeLogFileWithPseudoRandomPad(*pp_prg, ctx->logFile, (size_t) ctx->m);
         }
       else
         {
@@ -319,7 +319,7 @@ gboolean cr_Init_prg(cr_PIContext *ctx, cr_PRGContext **pp_prg)
           // write random pad.
           //-- Not the first time that cr_ini_prg is called
           g_info("cr_Init_prg: Re-use cr_PRGContext: *pp_prg: %p", (void *)(*pp_prg));
-          ret_randompad = cr_initializeLogFileWithPseudoRandomPad(*pp_prg, ctx->logFile, ctx->m);
+          ret_randompad = cr_initializeLogFileWithPseudoRandomPad(*pp_prg, ctx->logFile, (size_t) ctx->m);
         }
     }
   if (FALSE == ret_randompad)

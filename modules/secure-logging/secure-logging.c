@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2025 Airbus Commercial Aircraft
+ * Copyright (c) 2019-2026 Airbus Commercial Aircraft
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -154,7 +154,7 @@ tf_slog_prepare(LogTemplateFunction *self, gpointer ptr_state, LogTemplate *pare
       g_set_error(error, LOG_TEMPLATE_ERROR, LOG_TEMPLATE_ERROR_COMPILE,
                   SLOG_ERROR_PREFIX ": Template parsing failed. Invalid number of arguments.\n" \
                   "Usage:\n" \
-                  "$(slog --key-file FILE --mac-file FILE --logmode (direct | base64 | enc) $RAWMSG)\n");
+                  "$(slog --key-file FILE --mac-file FILE --logmode (direct|base64|enc) $RAWMSG)\n");
       g_option_context_free(ctx);
       (void) munlock(state->key, KEY_LENGTH);
       (void) munlock(state->aggMAC, CMAC_LENGTH);
@@ -288,7 +288,7 @@ tf_slog_prepare(LogTemplateFunction *self, gpointer ptr_state, LogTemplate *pare
             {
               msg_error(SLOG_ERROR_PREFIX,
                         evt_tag_str("Reason", "Number of log entries is greater than 0 but no MAC files provided"),
-                        evt_tag_long("Count", key_counter));
+                        evt_tag_printf("Count", "%" G_GUINT64_FORMAT, key_counter));
               is_good_start = FALSE;
             }
         }

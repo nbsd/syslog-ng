@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #############################################################################
-# Copyright (c) 2025 Airbus Commercial Aircraft
+# Copyright (c) 2026 Airbus Commercial Aircraft
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@
 
 # Author: Airbus Commercial Aircraft <secure-logging@airbus.com>
 # File:   cli24_crl_crv_valgrind.sh
-# Date:   2026-05-29
+# Date:   2026-06-25
 #
 # Smoke Test of cli tools cr_logger and cr_verifier under Valgrind
 #
@@ -57,8 +57,7 @@
 # set -x
 set -o pipefail
 
-VERSION="Version 1.0.2"
-
+VERSION="Version 1.0.3"
 # The COUNT_OF_LOG_LINES is used when this script is not provided
 # with a path to plain log file and a log file must be generated
 # therefore instead
@@ -240,7 +239,7 @@ check_missing "${TEST}/generate_logs.sh" "${TEST}/master.key" "${TEST}/tamper_fi
 # Check the number of arguments
 if [[ $# -eq 0 ]]; then
     echo "----------------------------------------"
-    echo "-- Create log file (because no arguemnt was given)"
+    echo "-- Create log file"
     echo "----------------------------------------"
     echo " "
     "${TEST}/generate_logs.sh" "${COUNT_OF_LOG_LINES}" >"${TEST}/plainlog.txt"

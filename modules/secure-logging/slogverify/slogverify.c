@@ -55,7 +55,7 @@ gboolean normalMode(char *path_hostkey, char *path_MACfile, char *path_inputlog,
     {
       msg_error(SLOG_ERROR_PREFIX, evt_tag_str("Reason",
                                                "Initial key k0 is required for verification and decryption but the supplied key read has a counter > 0."),
-                evt_tag_long("Counter", counter));
+                evt_tag_printf("Counter", "%" G_GUINT64_FORMAT, counter));
       OPENSSL_cleanse(key, sizeof key);
       return FALSE; //-- ERROR
     }
@@ -126,8 +126,9 @@ gboolean normalMode(char *path_hostkey, char *path_MACfile, char *path_inputlog,
   fclose(fp_input);
   fp_input = NULL;
 
-  msg_info(SLOG_INFO_PREFIX, evt_tag_str("Reason", "Number of lines in file"), evt_tag_long("number", entries));
-  msg_info(SLOG_INFO_PREFIX, evt_tag_str("Reason", "Restoring and verifying log entries"), evt_tag_int("buffer size",
+  msg_info(SLOG_INFO_PREFIX, evt_tag_str("Reason", "Number of lines in file"), evt_tag_printf("number",
+           "%" G_GUINT64_FORMAT, entries));
+  msg_info(SLOG_INFO_PREFIX, evt_tag_str("Reason", "Restoring and verifying log entries"), evt_tag_long("buffer size",
            bufsize));
   gboolean result = fileVerify(key,
                                path_inputlog,
@@ -154,7 +155,7 @@ gboolean normalMode(char *path_hostkey, char *path_MACfile, char *path_inputlog,
 
 // Return TRUE on success, FALSE on error
 gboolean iterativeMode(char *path_prevKey, char *path_prevMAC, char *path_curMAC, char *path_inputlog,
-                       char *path_outputlog, int bufsize,
+                       char *path_outputlog, guint32 bufsize,
                        enum LogMode logmode)
 {
   guchar previousKey[KEY_LENGTH];
@@ -227,8 +228,9 @@ gboolean iterativeMode(char *path_prevKey, char *path_prevMAC, char *path_curMAC
   fclose(fp_input);
   fp_input = NULL;
 
-  msg_info(SLOG_INFO_PREFIX, evt_tag_str("Reason", "Number of lines in file"), evt_tag_long("number", entries));
-  msg_info(SLOG_INFO_PREFIX, evt_tag_str("Reason", "Restoring and verifying log entries"), evt_tag_int("buffer size",
+  msg_info(SLOG_INFO_PREFIX, evt_tag_str("Reason", "Number of lines in file"), evt_tag_printf("number",
+           "%" G_GUINT64_FORMAT, entries));
+  msg_info(SLOG_INFO_PREFIX, evt_tag_str("Reason", "Restoring and verifying log entries"), evt_tag_long("buffer size",
            bufsize));
   gboolean result = iterativeFileVerify(previousMAC,
                                         previousKey,
@@ -616,7 +618,7 @@ int main(int argc, char *argv[])
       if ((endptr == argv[optidx]) || (*endptr != '\0'))
         {
           msg_warning(SLOG_ERROR_PREFIX, evt_tag_str("Reason", "Failed strtol for buffer size. Default size is used instead!"),
-                      evt_tag_int("Size", bufSize));
+                      evt_tag_long("Size", bufSize));
         }
       else
         {
@@ -626,7 +628,7 @@ int main(int argc, char *argv[])
             {
               msg_warning(SLOG_ERROR_PREFIX,
                           evt_tag_str("Reason", "Invalid buffer size. Default size is used instead!"),
-                          evt_tag_int("Size", bufSize),
+                          evt_tag_long("Size", bufSize),
                           evt_tag_int("Minimum buffer size", MIN_BUF_SIZE),
                           evt_tag_int("Maximum buffer size", MAX_BUF_SIZE));
             }

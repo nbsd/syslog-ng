@@ -182,15 +182,24 @@ int main(int argc, char *argv[])
   //-- check maxlogs
   int maxlogs;
   gchar *endptr;
-  maxlogs = strtol(argv[4], &endptr, 10);
+  long int litemp = strtol(argv[4], &endptr, 10);
   if (*endptr != '\0')
     {
       g_printerr("ERROR: cr_logger: Invalid maxlogs, expected a number: %s\n", argv[4]);
       g_option_context_free(context);
       return 1; //-- ERROR
     }
+  if (litemp > INT_MAX)
+    {
+      g_printerr("ERROR: cr_logger: maxlogs expected to be less or equal INT_MAX: %s\n", argv[4]);
+      g_option_context_free(context);
+      return 1; //-- ERROR
+    }
+  maxlogs = (int) litemp;
   if (maxlogs <= THE_K) //-- endless loop protection when filling Random buffer
     {
+      //-- anyhow, maxlogs should be at least 4096 to be reliable ensure Crash Recovery,
+      //   see https://eprint.iacr.org/2019/506.pdf, p 22, fig 3
       g_printerr("ERROR: cr_logger: Out of range: maxlogs: %d\n", maxlogs);
       g_option_context_free(context);
       return 1; //-- ERROR

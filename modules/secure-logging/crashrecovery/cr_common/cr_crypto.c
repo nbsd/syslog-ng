@@ -162,8 +162,16 @@ static int cr_under_PRG(unsigned char *seed, unsigned int *counter, const EVP_CI
       free(output);
       return 0; //-- ERROR
     }
+
+  if (size < 0)
+    {
+      //-- NEVER EVER,  bad interfae
+      g_warning("negative size provided\n");
+      return 0; //--ERROR
+    }
+
   // Fill result buffer, but only with the requested amount of random data.
-  memcpy(buffer, output, size);
+  memcpy(buffer, output, (unsigned int) size);
   free(output);
 
   return 1; //-- SUCCESS
@@ -312,7 +320,7 @@ static int cr_AES_encrypt(const EVP_CIPHER *cipher, unsigned char *plaintext, in
   /* Create and initialise the context */
   if (!(ctx = EVP_CIPHER_CTX_new()))
     {
-      cr_handleErrors();
+      cr_handleErrors(); //-- TODO ugly, change interface
       return 0;
     }
 
@@ -326,7 +334,7 @@ static int cr_AES_encrypt(const EVP_CIPHER *cipher, unsigned char *plaintext, in
    */
   if (1 != EVP_EncryptInit_ex(ctx, cipher, NULL, key, iv))
     {
-      cr_handleErrors();
+      cr_handleErrors(); //-- TODO ugly, change interface
       return 0;
     }
 
@@ -339,7 +347,7 @@ static int cr_AES_encrypt(const EVP_CIPHER *cipher, unsigned char *plaintext, in
    */
   if (1 != EVP_EncryptUpdate(ctx, ciphertextBuffer, &len, plaintext, plaintextSize))
     {
-      cr_handleErrors();
+      cr_handleErrors(); //-- TODO ugly, change interface
       return 0;
     }
   ciphertextLen = len;
@@ -349,7 +357,7 @@ static int cr_AES_encrypt(const EVP_CIPHER *cipher, unsigned char *plaintext, in
    */
   if (1 != EVP_EncryptFinal_ex(ctx, ciphertextBuffer + len, &len))
     {
-      cr_handleErrors();
+      cr_handleErrors(); //-- TODO ugly, change interface
       return 0;
     }
   ciphertextLen += len;
@@ -403,7 +411,7 @@ unsigned int cr_UniformRandomInt(cr_PRGContext *ctx, const unsigned int upperBou
   if (upperBound < 2)
     {
       g_error("PRG failed.");
-      exit(EXIT_FAILURE);
+      exit(EXIT_FAILURE); //-- TODO Ugly, change Interface!
     }
 
   // eliminate the modul bias
@@ -417,13 +425,14 @@ unsigned int cr_UniformRandomInt(cr_PRGContext *ctx, const unsigned int upperBou
 
   multipleOfUpperBound = (1ULL << 32) - ((1ULL << 32) % upperBound); //-- Fixed, i386, 1ULL (!)
   randomBuffer = g_malloc0(sizeof(unsigned int));
+  //-- TODO Ugly: change Interface and return with error when g_malloc fails
 
   for (;;)
     {
       if (1 != cr_PRG(ctx, randomBuffer, sizeof(unsigned int)))
         {
           g_error("PRG failed.");
-          exit(EXIT_FAILURE);
+          exit(EXIT_FAILURE); //-- TODO Ugly, change Interface!
         }
       memcpy(&rand, randomBuffer, sizeof(unsigned int));
       if (rand < multipleOfUpperBound)
@@ -460,7 +469,7 @@ int cr_DRN(unsigned char seed[KEY_SIZE], const int the_k, const int upperBound, 
       return 0; //-- ERROR
     }
 
-  if (2 >= upperBound && upperBound > INT_MAX)
+  if ((2 >= upperBound) && (upperBound > INT_MAX))
     {
       g_warning("Failed: cr_DRN, upperBound %d out of range, the_k: %d\n", upperBound, the_k);
       return 0; //-- ERROR
@@ -489,7 +498,7 @@ int cr_DRN(unsigned char seed[KEY_SIZE], const int the_k, const int upperBound, 
       // .. overflows and rand was not changing and caused an endless loop here!
 
       // check if the random number already exists in the arra of k random numbers.
-      if (!cr_exists(rand, kRandom, the_k))
+      if (!cr_exists(rand, kRandom, (size_t) (unsigned int) the_k))
         {
           kRandom[i] = rand;
           i++;

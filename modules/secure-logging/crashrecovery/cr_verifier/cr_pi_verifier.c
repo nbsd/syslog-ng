@@ -408,12 +408,13 @@ cr_Result cr_verifySingleLogFile(cr_VerifierContext *ctx)
                    destroy_value_KeyStoreEntry);  // The destroy function for our value struct
 
   //-- vector<Keys> keys; loop ctx->n
-  garr_keys = g_array_sized_new(TRUE, TRUE, sizeof(cr_Keys), ctx->n);
+  garr_keys = g_array_sized_new(TRUE, TRUE, sizeof(cr_Keys), (guint) ctx->n);
   //g_print("garr_keys: ctx->n: %d, sizeof(cr_Keys): %d\n", ctx->n, sizeof(cr_Keys) );
 
   //-- preallocate ctx-m elements,  std::vector<Tau_i> Tau(ctx->m);
-  garr_Tau = g_array_sized_new(TRUE, TRUE, sizeof(cr_Tau_i), ctx->m);
-  g_array_set_size(garr_Tau, ctx->m); //-- do not use append, instead: g_array_index(garr_Tau, cr_Tau_i, i) = taui;
+  garr_Tau = g_array_sized_new(TRUE, TRUE, sizeof(cr_Tau_i), (guint) ctx->m);
+  g_array_set_size(garr_Tau, (guint)
+                   ctx->m); //-- do not use append, instead: g_array_index(garr_Tau, cr_Tau_i, i) = taui;
   //g_print("garr_Tau: ctx->m: %d, sizeof(cr_Tau_i): %d, garr_Tau->len: %d\n", ctx->m, sizeof(cr_Tau_i),
   //        garr_Tau->len);
 
@@ -653,7 +654,7 @@ cr_Result cr_verifySingleLogFile(cr_VerifierContext *ctx)
               (void) fprintf(ctx->protocolFile, "ERROR: g_hash_table_lookup for %d returns value NULL\n", i);
               goto LABEL_CLEANUP;
             }
-          guint lj = (*p_drnsvalue)[j];
+          guint lj = (guint) (*p_drnsvalue)[j];
           //g_print("i: %d, j: %d, lj = (*p_drnsvalue)[j]: %d\n", i, j, lj);
 
           // line 18

@@ -533,7 +533,7 @@ void cr_Matrix_ctor(struct cr_MatrixType *self, int m, int n)
 {
   self->rows = m;
   self->colsInBits = n;
-  double temp_m = ceil(self->colsInBits / (double)(B_BITS));
+  double temp_m = ceil((double)self->colsInBits / (double)(B_BITS));
   int int32ColCount = (int) temp_m;
   self->buckets = int32ColCount;
   self->data = (unsigned int *) g_malloc0(sizeof(unsigned int) * self->rows * self->buckets);
@@ -599,7 +599,7 @@ struct cr_MatrixType *cr_Matrix_Create(size_t m, size_t n)
   struct cr_MatrixType *matrix = (struct cr_MatrixType *) g_malloc0(sizeof(struct cr_MatrixType));
   matrix->rows = rows;
   matrix->colsInBits = cols;
-  double temp_m = ceil(cols / (double)(B_BITS));
+  double temp_m = ceil((double)cols / (double)(B_BITS));
   size_t int32ColCount = (size_t) temp_m;
   matrix->buckets = int32ColCount;
   //-- matrix->data = new unsigned int [rows * int32ColCount]();

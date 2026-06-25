@@ -112,7 +112,7 @@ void cr_print_gstring_info(GString *gstr, const gchar *sz_title, gboolean is_sho
 
 
 // return TRUE on success, else FALSE
-gboolean get_path_from_file(const char *path_file_name, char *path_dir, int size_path_dir)
+gboolean get_path_from_file(const char *path_file_name, char *path_dir, size_t size_path_dir)
 {
   gboolean retval = FALSE;
   if ((NULL == path_file_name) || (NULL == path_dir))
@@ -129,10 +129,10 @@ gboolean get_path_from_file(const char *path_file_name, char *path_dir, int size
           size_t dir_len = strlen(dirname);
 
           // Check if the directory name fits (including the null terminator)
-          if (dir_len >= (size_t)size_path_dir)
+          if (dir_len >= size_path_dir)
             {
               g_free(dirname);
-              g_warning("size_path_dir too small (%d)! Need %zu", size_path_dir, dir_len + 1);
+              g_warning("size_path_dir too small (%zu)! Need %zu", size_path_dir, dir_len + 1);
               return FALSE;
             }
 
@@ -406,8 +406,8 @@ void get_minutes_seconds_from_ms(int64_t milliseconds, int *minutes, int *second
       return;
     }
   uint64_t total_seconds = (milliseconds + 500) / 1000;
-  *minutes = total_seconds / 60;
-  *seconds = total_seconds % 60;
+  *minutes = (int) (total_seconds / 60);
+  *seconds = (int) (total_seconds % 60);
 }
 
 

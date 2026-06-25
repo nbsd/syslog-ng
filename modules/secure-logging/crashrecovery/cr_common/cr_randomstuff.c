@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <glib.h>
+#include <openssl/rand.h>
 
 #include "cr_randomstuff.h"
 
@@ -34,9 +35,9 @@
 //in: arr Array Container of items being searched in
 //in: size Number of items in array
 
-static gboolean cr_exists(size_t element, const size_t arr[], size_t size)
+static gboolean cr_exists(size_t element, const size_t arr[], int size)
 {
-  for (size_t i = 0; i < size; ++i)
+  for (int i = 0; i < size; ++i)
     {
       if (arr[i] == element)
         {
@@ -65,39 +66,40 @@ static gboolean cr_exists(size_t element, const size_t arr[], size_t size)
 
 size_t *cr_distinctRandomEz(size_t range, int k, int seed)
 {
-  if (RAND_MAX <= range)
+  (void) seed;
+  if ((size_t)RAND_MAX <= range)
     {
       g_print("ERROR, range %lu is out of range. Must be less than RAND_MAX %d\n", range, RAND_MAX);
       return NULL;
     }
 
-  if (k < 0 || (size_t)k > (range + 1))
+  if ((k < 0) || ((size_t)k > (range + 1U)))
     {
       g_print("ERROR, Invalid k: %d or range: %lu\n", k, range);
       return NULL;
     }
 
-  size_t min = 0;
-  size_t max = range;
-
   //-- size_t *k_random = new size_t[k];
-  size_t *k_random = (size_t *) g_malloc0( k * sizeof(size_t) );
-  for (int n = 0; n < k; n++)
+  size_t *k_random = (size_t *) g_malloc0( ((size_t)k) * sizeof(size_t) );
+  if (k_random == NULL)
     {
-      k_random[n] = -1;
+      g_print("ERROR, Failed to allocated memory for k_random");
+      return NULL;
     }
-
-  //-- initialize pseudo random generator
-  // if (0 == seed)
-  //   srand(time(NULL));
-  // else
-  srand(seed);
+  memset(k_random, -1, ((size_t)k) * sizeof(size_t));
 
   int i = 0;
   while (i < k)
     {
       //-- size_t r = distribution(gen);
-      size_t r = (rand() % (max - min + 1)) + min;
+      size_t r;
+      if (RAND_bytes((unsigned char *)&r, sizeof(r)) != 1)
+        {
+          free(k_random);
+          g_print("ERROR, OpenSSL RAND_bytes returns with error");
+          return NULL;
+        }
+      r = r % (range + 1U);
       if (cr_exists(r, k_random, k))
         {
           continue;

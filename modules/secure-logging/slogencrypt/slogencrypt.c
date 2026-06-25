@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
     }
 
   // Note: When all data is provided correctly, argc is 5 or 6 after parsing
-  if (argc < 5 || argc > 6)
+  if ((argc < 5) || (argc > 6))
     {
       g_print("ERROR: Count of arguments is out of range!\n\n");
       (void) slog_usage(context, group, NULL);
@@ -370,11 +370,11 @@ int main(int argc, char *argv[])
   if (argc == 6)
     {
       int result = sscanf(argv[optidx], "%"G_GUINT64_FORMAT, &bufSize);
-      if (result == EOF || bufSize <= MIN_BUF_SIZE || bufSize > MAX_BUF_SIZE)
+      if ((result == EOF) || (bufSize <= MIN_BUF_SIZE) || (bufSize > MAX_BUF_SIZE))
         {
           msg_error(SLOG_ERROR_PREFIX,
                     evt_tag_str("Reason", "Invalid buffer size."),
-                    evt_tag_int("Size", bufSize),
+                    evt_tag_printf("Size", "%" G_GUINT64_FORMAT, bufSize),
                     evt_tag_int("Minimum buffer size", MIN_BUF_SIZE),
                     evt_tag_int("Maximum buffer size", MAX_BUF_SIZE));
           retval = 1; //-- ERROR

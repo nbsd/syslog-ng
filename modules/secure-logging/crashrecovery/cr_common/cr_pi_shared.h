@@ -125,7 +125,7 @@ int cr_CreateIntegrityTag(unsigned char *key, unsigned char *XORlj, unsigned cha
 void cr_print_gstring_info(GString *gstr, const gchar *sz_title, gboolean is_showhex, gboolean is_debug);
 
 /* get and check path form full filename */
-gboolean get_path_from_file(const char *path_file_name, char *path_dir, int size_path_dir);
+gboolean get_path_from_file(const char *path_file_name, char *path_dir, size_t size_path_dir);
 
 /* get short file name without extension */
 gchar *get_stem_manually(const gchar *filename);
