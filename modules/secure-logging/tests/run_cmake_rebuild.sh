@@ -25,7 +25,7 @@
 #-----------------------------------------------------------------------
 # File:   run_cmake_rebuild.sh
 # Author: Airbus Commercial Aircraft <secure-logging@airbus.com>
-# Date:   2026-06-23
+# Date:   2026-06-30
 #
 # Helper script to rebuild all from scratch inclusive installation and
 # test.
@@ -41,14 +41,26 @@ set -o pipefail
 
 #-- build environment (if set somewhere else, take over value) ---
 
-#-- clang (if false then gcc is used) ---
+#-- clang (if false then gcc is used)
 : "${IS_CLANG:="false"}"
 
-#-- make (can become qmake if defined outside) ---
+#-- make (can become qmake if defined outside)
 : "${MY_MAKE:="make"}"
 
-#-- parallel build ---
+#-- parallel build
 : "${IS_PARALLEL_BUILD:="true"}"
+
+#-- installation directory (most likely exported in ~/.bashrc)
+: "${SW_INSTALL_DIR:="$HOME/Software/install"}"
+
+#-- build logs directory (most likely exported in ~/.bashrc)
+: "${BUILD_LOG_DIR:="$HOME/backup/05_build_log"}"
+
+# When user wants to keep installation directory, REMOVE_PREFIX must be set to false
+REMOVE_PREFIX="true"
+
+PREFIX=${SW_INSTALL_DIR}
+LOGS=${BUILD_LOG_DIR}
 
 # The following is needed on some systems in context of tests with valgrind.
 # When valgrind is not used, this flag can be set to false.
@@ -56,12 +68,6 @@ set -o pipefail
 IS_DWARF_4="true"
 
 IS_SPECIAL_FLAGS="false" # If Ubuntu Linux is used, special flags for clang are needed
-
-#-- user specifc path ---
-PREFIX=${HOME}/Software/install
-LOGS=${HOME}/backup/05_build_log
-
-REMOVE_PREFIX="true"
 
 export AM_COLOR_TESTS=always
 export FORCE_COLOR=1

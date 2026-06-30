@@ -25,7 +25,7 @@
 #-----------------------------------------------------------------------
 # File:   run_autotools_rebuild.sh
 # Author: Airbus Commercial Aircraft <secure-logging@airbus.com>
-# Date:   2026-06-23
+# Date:   2026-06-30
 #
 # Helper script to rebuild all from scratch inclusive installation and
 # test.
@@ -43,11 +43,17 @@ set -o pipefail
 : "${MY_MAKE:="make"}"
 : "${IS_PARALLEL_BUILD:="true"}"
 
-#-- user specifc path ---
-PREFIX=${HOME}/Software/install
-LOGS=${HOME}/backup/05_build_log
+#-- installation directory (most likely exported in ~/.bashrc)
+: "${SW_INSTALL_DIR:="$HOME/Software/install"}"
 
+#-- build logs directory (most likely exported in ~/.bashrc)
+: "${BUILD_LOG_DIR:="$HOME/backup/05_build_log"}"
+
+# When user wants to keep installation directory, REMOVE_PREFIX must be set to false
 REMOVE_PREFIX="true"
+
+PREFIX=${SW_INSTALL_DIR}
+LOGS=${BUILD_LOG_DIR}
 
 export AM_COLOR_TESTS=always
 export FORCE_COLOR=1

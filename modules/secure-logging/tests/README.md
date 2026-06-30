@@ -396,6 +396,11 @@ export TESTBAK_DIR
 SW_INSTALL_DIR="$HOME/Software/install"
 export SW_INSTALL_DIR
 
+BUILD_LOG_DIR="$HOME/backup/05_build_log"
+export BUILD_LOG_DIR
+
+
+
 #-- Define the base LINTFLAGS ---
 export UBUNTU_LINTFLAGS="-I/usr/include \
 -I${SYSLOG_DIR}/lib \
@@ -547,7 +552,6 @@ alias crverifyx='${SW_INSTALL_DIR}/bin/cr_verifier \
 --out "${TESTBAK_DIR}/cr/msg6696_verifier.txt" \
 --maxlogs 6696'
 
-# ----------------------------------------------------------------------
 
 # alias goslroot='cd $HOME/Software/syslog-ng'
 alias goslroot='cd ${SYSLOG_DIR}'
@@ -571,7 +575,7 @@ alias goi='cd ${SW_INSTALL_DIR}'
 alias gobin='cd ${SW_INSTALL_DIR}/bin'
 alias gosbin='cd ${SW_INSTALL_DIR}/sbin'
 alias gobackup='cd $HOME/backup'
-alias goblog='cd $HOME/backup/05_build_log'
+alias goblog='cd "${BUILD_LOG_DIR}"'
 
 alias gotest='cd ${TESTBAK_DIR}'
 alias gotest11='cd ${TESTBAK_DIR}/cli11_enc_syslog_verify_n'
@@ -626,17 +630,19 @@ alias stylesl='(
   ${SYSLOG_DIR}/scripts/style-checker.sh format
 )'
 
+
+
 # move old logs into the ./old/ folder
 alias blogmv='(
-  cd $HOME/backup/05_build_log &&
-  mkdir -p $HOME/backup/05_build_log/old/ &&
-  mv $HOME/backup/05_build_log/*.txt $HOME/backup/05_build_log/old/ &&
-  ls -alt $HOME/backup/05_build_log
+  cd "${BUILD_LOG_DIR}" &&
+  mkdir -p "${BUILD_LOG_DIR}"/old/ &&
+  mv "${BUILD_LOG_DIR}"/*.txt "${BUILD_LOG_DIR}"/old/ &&
+  ls -alt "${BUILD_LOG_DIR}"
 )'
 
 # Helper for alias blogvim
 blog_open_newest() {
-    local target_dir="$HOME/backup/05_build_log"
+    local target_dir="${BUILD_LOG_DIR}"
     if [ ! -d "${target_dir}" ]; then
         echo "Error: Directory ${target_dir} does not exist."
         return 1
@@ -653,6 +659,7 @@ blog_open_newest() {
 }
 
 alias vimblog='blog_open_newest'
+
 
 
 #-- Criterion Unit Tests (CMake and Autotools use various folders and files) ---
